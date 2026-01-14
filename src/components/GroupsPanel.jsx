@@ -10,13 +10,14 @@ import {
     X
 } from 'lucide-react';
 import { useAuthStore } from '../stores/authStore';
-import { getUserGroups, joinGroupByCode } from '../services/groupService';
+import { getUserGroups, joinGroupByCode, getPublicGroups, joinGroupById } from '../services/groupService';
 import CreateGroupModal from './CreateGroupModal';
 import GroupChat from './GroupChat';
 
 const GroupsPanel = ({ isOpen, onClose }) => {
     const { user } = useAuthStore();
-    const [groups, setGroups] = useState([]);
+    const [userGroups, setUserGroups] = useState([]);
+    const [publicGroups, setPublicGroups] = useState([]);
     const [loading, setLoading] = useState(false);
     const [showCreateModal, setShowCreateModal] = useState(false);
     const [joinCode, setJoinCode] = useState('');
@@ -24,6 +25,7 @@ const GroupsPanel = ({ isOpen, onClose }) => {
     const [joining, setJoining] = useState(false);
     const [copiedCode, setCopiedCode] = useState(null);
     const [selectedGroup, setSelectedGroup] = useState(null);
+    const [activeTab, setActiveTab] = useState('my-groups'); // 'my-groups' or 'discover'
 
     // Load user's groups
     useEffect(() => {
@@ -38,12 +40,33 @@ const GroupsPanel = ({ isOpen, onClose }) => {
     const loadGroups = async () => {
         setLoading(true);
         try {
-            const userGroups = await getUserGroups(user?.uid || 'anonymous');
-            setGroups(userGroups);
+            const [myGroups, discoveryGroups] = await Promise.all([
+                getUserGroups(user?.uid || 'anonymous'),
+                getPublicGroups(10)
+            ]);
+
+            setUserGroups(myGroups);
+            // Filter out groups the user is already in from discovery
+            const userGroupIds = new Set(myGroups.map(g => g.id));
+            setPublicGroups(discoveryGroups.filter(g => !userGroupIds.has(g.id)));
         } catch (error) {
             console.error('Error loading groups:', error);
         } finally {
             setLoading(false);
+        }
+    };
+
+    const handleJoinPublicGroup = async (groupId) => {
+        setJoining(true);
+        try {
+            const result = await joinGroupById(groupId, user?.uid || 'anonymous');
+            if (result.success) {
+                loadGroups();
+            }
+        } catch (error) {
+            console.error('Error joining public group:', error);
+        } finally {
+            setJoining(false);
         }
     };
 
@@ -81,8 +104,9 @@ const GroupsPanel = ({ isOpen, onClose }) => {
     };
 
     const handleGroupCreated = (newGroup) => {
-        setGroups(prev => [newGroup, ...prev]);
+        setUserGroups(prev => [newGroup, ...prev]);
         setShowCreateModal(false);
+        setActiveTab('my-groups');
     };
 
     const handleGroupClick = (group) => {
@@ -139,6 +163,22 @@ const GroupsPanel = ({ isOpen, onClose }) => {
                             {joinError && <span className="join-error">{joinError}</span>}
                         </div>
 
+                        {/* Tabs */}
+                        <div className="groups-tabs">
+                            <button
+                                className={`tab-btn ${activeTab === 'my-groups' ? 'active' : ''}`}
+                                onClick={() => setActiveTab('my-groups')}
+                            >
+                                My Groups ({userGroups.length})
+                            </button>
+                            <button
+                                className={`tab-btn ${activeTab === 'discover' ? 'active' : ''}`}
+                                onClick={() => setActiveTab('discover')}
+                            >
+                                Discover
+                            </button>
+                        </div>
+
                         {/* Groups List */}
                         <div className="groups-list">
                             {loading ? (
@@ -146,42 +186,78 @@ const GroupsPanel = ({ isOpen, onClose }) => {
                                     <Loader size={24} className="spinner" />
                                     <span>Loading groups...</span>
                                 </div>
-                            ) : groups.length > 0 ? (
-                                groups.map(group => (
-                                    <div
-                                        key={group.id}
-                                        className="group-card"
-                                        onClick={() => handleGroupClick(group)}
-                                    >
-                                        <div className="group-icon">{group.icon || '🏘️'}</div>
-                                        <div className="group-info">
-                                            <span className="group-name">{group.name}</span>
-                                            <span className="group-members">
-                                                {group.memberCount || group.members?.length || 0} members • Click to chat
-                                            </span>
+                            ) : activeTab === 'my-groups' ? (
+                                userGroups.length > 0 ? (
+                                    userGroups.map(group => (
+                                        <div
+                                            key={group.id}
+                                            className="group-card"
+                                            onClick={() => handleGroupClick(group)}
+                                        >
+                                            <div className="group-icon">{group.icon || '🏘️'}</div>
+                                            <div className="group-info">
+                                                <div className="group-name-row">
+                                                    <span className="group-name">{group.name}</span>
+                                                    {!group.isPrivate && <span className="public-badge">Public</span>}
+                                                </div>
+                                                <span className="group-members">
+                                                    {group.memberCount || group.members?.length || 0} members • Click to chat
+                                                </span>
+                                            </div>
+                                            <div className="group-actions">
+                                                <button
+                                                    className="copy-code-btn"
+                                                    onClick={(e) => handleCopyCode(group.inviteCode, e)}
+                                                    title="Copy invite code"
+                                                >
+                                                    {copiedCode === group.inviteCode ? (
+                                                        <Check size={14} className="copied" />
+                                                    ) : (
+                                                        <Copy size={14} />
+                                                    )}
+                                                </button>
+                                                <ChevronRight size={16} className="chevron" />
+                                            </div>
                                         </div>
-                                        <div className="group-actions">
-                                            <button
-                                                className="copy-code-btn"
-                                                onClick={(e) => handleCopyCode(group.inviteCode, e)}
-                                                title="Copy invite code"
-                                            >
-                                                {copiedCode === group.inviteCode ? (
-                                                    <Check size={14} className="copied" />
-                                                ) : (
-                                                    <Copy size={14} />
-                                                )}
-                                            </button>
-                                            <ChevronRight size={16} className="chevron" />
-                                        </div>
+                                    ))
+                                ) : (
+                                    <div className="no-groups">
+                                        <Users size={32} />
+                                        <p>No groups yet</p>
+                                        <span>Create a group or join one with an invite code</span>
                                     </div>
-                                ))
+                                )
                             ) : (
-                                <div className="no-groups">
-                                    <Users size={32} />
-                                    <p>No groups yet</p>
-                                    <span>Create a group or join one with an invite code</span>
-                                </div>
+                                /* Discovery Tab */
+                                publicGroups.length > 0 ? (
+                                    publicGroups.map(group => (
+                                        <div
+                                            key={group.id}
+                                            className="group-card discovery-card"
+                                        >
+                                            <div className="group-icon">{group.icon || '🏘️'}</div>
+                                            <div className="group-info">
+                                                <span className="group-name">{group.name}</span>
+                                                <span className="group-members">
+                                                    {group.memberCount || group.members?.length || 0} members
+                                                </span>
+                                            </div>
+                                            <button
+                                                className="btn-join-direct"
+                                                onClick={() => handleJoinPublicGroup(group.id)}
+                                                disabled={joining}
+                                            >
+                                                {joining ? <Loader size={14} className="spinner" /> : 'Join'}
+                                            </button>
+                                        </div>
+                                    ))
+                                ) : (
+                                    <div className="no-groups">
+                                        <Users size={32} />
+                                        <p>No new public groups</p>
+                                        <span>Check back later for more communities to join!</span>
+                                    </div>
+                                )
                             )}
                         </div>
                     </>

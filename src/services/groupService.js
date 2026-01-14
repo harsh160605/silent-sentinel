@@ -114,6 +114,45 @@ export const joinGroupByCode = async (inviteCode, userId) => {
 };
 
 /**
+ * Join a group directly by ID (for public groups)
+ */
+export const joinGroupById = async (groupId, userId) => {
+    const db = getFirebaseDb();
+    if (!db) return { success: false, error: 'Firebase not initialized' };
+
+    try {
+        const groupRef = doc(db, 'groups', groupId);
+        const groupSnap = await getDoc(groupRef);
+
+        if (!groupSnap.exists()) {
+            return { success: false, error: 'Group not found' };
+        }
+
+        const groupData = groupSnap.data();
+
+        // Check if already a member
+        if (groupData.members.includes(userId)) {
+            return { success: true, group: { id: groupId, ...groupData } };
+        }
+
+        // Add user to group
+        await updateDoc(groupRef, {
+            members: arrayUnion(userId),
+            memberCount: (groupData.memberCount || 0) + 1,
+            updatedAt: Timestamp.now()
+        });
+
+        return {
+            success: true,
+            group: { id: groupId, ...groupData }
+        };
+    } catch (error) {
+        console.error('Error joining group by ID:', error);
+        return { success: false, error: 'Failed to join group' };
+    }
+};
+
+/**
  * Leave a group
  */
 export const leaveGroup = async (groupId, userId) => {
@@ -186,6 +225,33 @@ export const getUserGroups = async (userId) => {
         });
     } catch (error) {
         console.error('Error getting user groups:', error);
+        return [];
+    }
+};
+
+/**
+ * Get public groups for discovery
+ */
+export const getPublicGroups = async (limitCount = 10) => {
+    const db = getFirebaseDb();
+    if (!db) return [];
+
+    try {
+        const q = query(
+            collection(db, 'groups'),
+            where('isPrivate', '==', false),
+            limit(limitCount)
+        );
+
+        const snapshot = await getDocs(q);
+        const groups = [];
+        snapshot.forEach(doc => {
+            groups.push({ id: doc.id, ...doc.data() });
+        });
+
+        return groups;
+    } catch (error) {
+        console.error('Error getting public groups:', error);
         return [];
     }
 };

@@ -80,7 +80,6 @@ export const getGroupMessages = async (groupId, limitCount = 50) => {
         const q = query(
             collection(db, 'groupMessages'),
             where('groupId', '==', groupId),
-            orderBy('timestamp', 'desc'),
             limit(limitCount)
         );
 
@@ -96,8 +95,9 @@ export const getGroupMessages = async (groupId, limitCount = 50) => {
             });
         });
 
-        // Return in chronological order
-        return messages.reverse();
+        // Sort locally by timestamp ascending (chronological order)
+        // This bypasses the need for a composite index
+        return messages.sort((a, b) => a.timestamp - b.timestamp);
     } catch (error) {
         console.error('Error getting messages:', error);
         return [];
@@ -120,7 +120,6 @@ export const subscribeToMessages = (groupId, callback) => {
         const q = query(
             collection(db, 'groupMessages'),
             where('groupId', '==', groupId),
-            orderBy('timestamp', 'desc'),
             limit(50)
         );
 
@@ -134,7 +133,8 @@ export const subscribeToMessages = (groupId, callback) => {
                     timestamp: data.timestamp?.toDate() || new Date()
                 });
             });
-            callback(messages.reverse());
+            // Sort locally (asc) and return
+            callback(messages.sort((a, b) => a.timestamp - b.timestamp));
         });
 
         return unsubscribe;
