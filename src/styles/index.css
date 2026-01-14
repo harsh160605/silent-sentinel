@@ -2566,6 +2566,12 @@ body {
   color: var(--accent-primary);
 }
 
+.groups-header-actions {
+  display: flex;
+  align-items: center;
+  gap: var(--space-sm);
+}
+
 .btn-create-group {
   display: flex;
   align-items: center;
@@ -2583,6 +2589,26 @@ body {
 
 .btn-create-group:hover {
   background: var(--accent-secondary);
+}
+
+.btn-close-panel {
+  width: 32px;
+  height: 32px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: transparent;
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-md);
+  color: var(--text-muted);
+  cursor: pointer;
+  transition: var(--transition-fast);
+}
+
+.btn-close-panel:hover {
+  background: var(--bg-tertiary);
+  color: var(--text-primary);
+  border-color: var(--border-light);
 }
 
 .join-group-section {

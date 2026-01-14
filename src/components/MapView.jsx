@@ -63,6 +63,21 @@ function MapEvents({ onCenterChange }) {
   return null;
 }
 
+// Component to handle programmatic map recentering
+function RecenterMap({ location }) {
+  const map = useMap();
+  const hasCentered = useRef(false);
+
+  useEffect(() => {
+    if (location && !hasCentered.current) {
+      map.setView([location.lat, location.lng], 14);
+      hasCentered.current = true;
+    }
+  }, [location, map]);
+
+  return null;
+}
+
 const MapView = () => {
   const {
     center,
@@ -158,6 +173,7 @@ const MapView = () => {
         />
 
         <MapEvents onCenterChange={handleCenterChange} />
+        <RecenterMap location={userLocation} />
 
         {/* User location marker */}
         {userLocation && (

@@ -92,8 +92,8 @@ const GroupsPanel = ({ isOpen, onClose }) => {
     if (!isOpen) return null;
 
     return (
-        <>
-            <div className="groups-panel">
+        <div className="modal-overlay" onClick={onClose}>
+            <div className="groups-panel" onClick={(e) => e.stopPropagation()}>
                 {selectedGroup ? (
                     <GroupChat
                         group={selectedGroup}
@@ -107,10 +107,15 @@ const GroupsPanel = ({ isOpen, onClose }) => {
                                 <Users size={18} />
                                 <h3>Community Groups</h3>
                             </div>
-                            <button className="btn-create-group" onClick={() => setShowCreateModal(true)}>
-                                <Plus size={16} />
-                                <span>Create</span>
-                            </button>
+                            <div className="groups-header-actions">
+                                <button className="btn-create-group" onClick={() => setShowCreateModal(true)}>
+                                    <Plus size={16} />
+                                    <span>Create</span>
+                                </button>
+                                <button className="btn-close-panel" onClick={onClose} title="Close Panel">
+                                    <X size={18} />
+                                </button>
+                            </div>
                         </div>
 
                         {/* Join Group */}
@@ -190,7 +195,7 @@ const GroupsPanel = ({ isOpen, onClose }) => {
                     onCreate={handleGroupCreated}
                 />
             )}
-        </>
+        </div>
     );
 };
 

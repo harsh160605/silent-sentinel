@@ -168,7 +168,6 @@ export const getUserGroups = async (userId) => {
         const q = query(
             collection(db, 'groups'),
             where('members', 'array-contains', userId),
-            orderBy('updatedAt', 'desc'),
             limit(20)
         );
 
@@ -179,7 +178,12 @@ export const getUserGroups = async (userId) => {
             groups.push({ id: doc.id, ...doc.data() });
         });
 
-        return groups;
+        // Sort locally by updatedAt desc since we removed the server-side orderBy to avoid index requirement
+        return groups.sort((a, b) => {
+            const timeA = a.updatedAt?.toMillis() || 0;
+            const timeB = b.updatedAt?.toMillis() || 0;
+            return timeB - timeA;
+        });
     } catch (error) {
         console.error('Error getting user groups:', error);
         return [];
