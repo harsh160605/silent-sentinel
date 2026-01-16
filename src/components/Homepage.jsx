@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { Shield, MapPin, AlertCircle, Users, Lock, Zap, ArrowRight, Check } from 'lucide-react';
 import '../styles/Homepage.css';
+import logo from '../assets/logo.png';
 
 function Homepage({ onGetStarted }) {
     const [hoveredFeature, setHoveredFeature] = useState(null);
@@ -161,7 +162,7 @@ function Homepage({ onGetStarted }) {
                 </div>
                 <div className="why-visual">
                     <div className="safety-illustration">
-                        <MapPin size={120} className="illustration-icon" />
+                        <img src={logo} alt="Safety Illustration Logo" className="illustration-logo" />
                     </div>
                 </div>
             </section>
