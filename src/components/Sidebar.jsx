@@ -16,7 +16,9 @@ import {
   Star
 } from 'lucide-react';
 
-const Sidebar = ({ onCreateReport, onToggleFeed, feedOpen, onToggleGroups, groupsOpen, onRate }) => {
+import logo from '../assets/logo.png';
+
+const Sidebar = ({ onGoHome, onCreateReport, onToggleFeed, feedOpen, onToggleGroups, groupsOpen, onRate }) => {
   const { selectedLayers, toggleLayer, reports } = useMapStore();
   const [openDropdown, setOpenDropdown] = useState(null);
   const dropdownRef = useRef(null);
@@ -46,208 +48,133 @@ const Sidebar = ({ onCreateReport, onToggleFeed, feedOpen, onToggleGroups, group
   };
 
   return (
-    <nav className="top-nav" ref={dropdownRef}>
-      <div className="nav-content">
-        {/* Create Report Button */}
-        <button className="btn-create-report" onClick={onCreateReport}>
-          <Plus size={18} />
-          <span>Report Concern</span>
-        </button>
-
-        {/* Activity Feed Toggle */}
-        <button
-          className={`nav-dropdown-trigger ${feedOpen ? 'active' : ''}`}
-          onClick={onToggleFeed}
-        >
-          <Activity size={18} />
-          <span>Activity</span>
-        </button>
-
-        {/* Groups Toggle */}
-        <button
-          className={`nav-dropdown-trigger ${groupsOpen ? 'active' : ''}`}
-          onClick={onToggleGroups}
-        >
-          <Users size={18} />
-          <span>Groups</span>
-        </button>
-
-        {/* Rate Area */}
-        <button
-          className="nav-dropdown-trigger"
-          onClick={onRate}
-        >
-          <Star size={18} />
-          <span>Rate</span>
-        </button>
-
-        {/* Divider */}
-        <div className="nav-divider"></div>
-
-        {/* Map Layers Dropdown */}
-        <div className="nav-dropdown">
-          <button
-            className={`nav-dropdown-trigger ${openDropdown === 'layers' ? 'active' : ''}`}
-            onClick={() => toggleDropdown('layers')}
-          >
-            <Layers size={18} />
-            <span>Map Layers</span>
-            <ChevronDown size={16} className={`chevron ${openDropdown === 'layers' ? 'rotated' : ''}`} />
-          </button>
-
-          {openDropdown === 'layers' && (
-            <div className="nav-dropdown-panel">
-              <div className="dropdown-header">
-                <Layers size={16} />
-                <span>Toggle Map Layers</span>
-              </div>
-
-              <label className="layer-toggle">
-                <input
-                  type="checkbox"
-                  checked={selectedLayers.perception}
-                  onChange={() => toggleLayer('perception')}
-                />
-                <div className="layer-info">
-                  <Eye size={16} className="layer-icon perception" />
-                  <div>
-                    <span className="layer-name">Perception Layer</span>
-                    <span className="layer-desc">User feels unsafe</span>
-                  </div>
-                </div>
-              </label>
-
-              <label className="layer-toggle">
-                <input
-                  type="checkbox"
-                  checked={selectedLayers.crime}
-                  onChange={() => toggleLayer('crime')}
-                />
-                <div className="layer-info">
-                  <AlertTriangle size={16} className="layer-icon crime" />
-                  <div>
-                    <span className="layer-name">Crime Reports</span>
-                    <span className="layer-desc">Verified incidents</span>
-                  </div>
-                </div>
-              </label>
-
-              <label className="layer-toggle">
-                <input
-                  type="checkbox"
-                  checked={selectedLayers.patterns}
-                  onChange={() => toggleLayer('patterns')}
-                />
-                <div className="layer-info">
-                  <TrendingUp size={16} className="layer-icon patterns" />
-                  <div>
-                    <span className="layer-name">Pattern Detection</span>
-                    <span className="layer-desc">AI-detected clusters</span>
-                  </div>
-                </div>
-              </label>
-            </div>
-          )}
+    <nav className="dashboard-nav" ref={dropdownRef}>
+      <div className="nav-left">
+        <div className="nav-brand" onClick={onGoHome} style={{ cursor: 'pointer' }}>
+          <img src={logo} alt="Logo" className="nav-logo-img" />
+          <div className="brand-text">
+            <span className="brand-name">SENTINEL</span>
+            <span className="brand-status">GROUND ZERO</span>
+          </div>
         </div>
+      </div>
 
-        {/* Statistics Dropdown */}
-        <div className="nav-dropdown">
+      <div className="nav-center">
+        {/* Create Report Button - Prominent */}
+        <button className="btn-action-primary" onClick={onCreateReport}>
+          <Plus size={16} strokeWidth={3} />
+          <span>REPORT INCIDENT</span>
+        </button>
+
+        <div className="nav-v-divider"></div>
+
+        {/* Core Toggles */}
+        <div className="toggle-group">
           <button
-            className={`nav-dropdown-trigger ${openDropdown === 'stats' ? 'active' : ''}`}
-            onClick={() => toggleDropdown('stats')}
+            className={`nav-icon-btn ${feedOpen ? 'active' : ''}`}
+            onClick={onToggleFeed}
+            title="Activity Feed"
           >
-            <BarChart3 size={18} />
-            <span>Statistics</span>
-            <span className="stat-badge">{stats.total}</span>
-            <ChevronDown size={16} className={`chevron ${openDropdown === 'stats' ? 'rotated' : ''}`} />
+            <Activity size={20} />
+            <span className="btn-label">Activity</span>
           </button>
+
+          <button
+            className={`nav-icon-btn ${groupsOpen ? 'active' : ''}`}
+            onClick={onToggleGroups}
+            title="Community Groups"
+          >
+            <Users size={20} />
+            <span className="btn-label">Groups</span>
+          </button>
+
+          <button
+            className="nav-icon-btn"
+            onClick={onRate}
+            title="Rate Current Area"
+          >
+            <Star size={20} />
+            <span className="btn-label">Rate Area</span>
+          </button>
+        </div>
+      </div>
+
+      <div className="nav-right">
+        {/* Stats Summary Bubble */}
+        <div className="nav-stats-bubble" onClick={() => toggleDropdown('stats')}>
+          <div className="stats-dot pulse"></div>
+          <span className="stats-count">{stats.total} REPORTS LIVE</span>
+          <ChevronDown size={14} className={openDropdown === 'stats' ? 'rotated' : ''} />
 
           {openDropdown === 'stats' && (
-            <div className="nav-dropdown-panel stats-panel">
-              <div className="dropdown-header">
-                <Shield size={16} />
-                <span>Active Reports</span>
+            <div className="nav-panel-stats">
+              <div className="panel-row">
+                <span>High Risk</span>
+                <span className="val-high">{stats.high}</span>
               </div>
-
-              <div className="stats-grid">
-                <div className="stat-card">
-                  <span className="stat-value">{stats.total}</span>
-                  <span className="stat-label">Total</span>
-                </div>
-                <div className="stat-card stat-high">
-                  <span className="stat-value">{stats.high}</span>
-                  <span className="stat-label">High Risk</span>
-                </div>
-                <div className="stat-card stat-medium">
-                  <span className="stat-value">{stats.medium}</span>
-                  <span className="stat-label">Medium</span>
-                </div>
-                <div className="stat-card stat-low">
-                  <span className="stat-value">{stats.low}</span>
-                  <span className="stat-label">Low</span>
-                </div>
+              <div className="panel-row">
+                <span>Moderate</span>
+                <span className="val-med">{stats.medium}</span>
+              </div>
+              <div className="panel-row">
+                <span>Safe/Info</span>
+                <span className="val-low">{stats.low}</span>
               </div>
             </div>
           )}
         </div>
 
-        {/* Legend Dropdown */}
-        <div className="nav-dropdown">
-          <button
-            className={`nav-dropdown-trigger ${openDropdown === 'legend' ? 'active' : ''}`}
-            onClick={() => toggleDropdown('legend')}
-          >
-            <Info size={18} />
-            <span>Legend</span>
-            <ChevronDown size={16} className={`chevron ${openDropdown === 'legend' ? 'rotated' : ''}`} />
-          </button>
+        <div className="nav-v-divider"></div>
 
-          {openDropdown === 'legend' && (
-            <div className="nav-dropdown-panel legend-panel">
-              <div className="dropdown-header">
-                <Info size={16} />
-                <span>Risk Level Colors</span>
-              </div>
+        {/* Map Layers Dropdown */}
+        <button
+          className={`nav-icon-btn ${openDropdown === 'layers' ? 'active' : ''}`}
+          onClick={() => toggleDropdown('layers')}
+        >
+          <Layers size={20} />
+        </button>
 
-              <div className="legend">
-                <div className="legend-item">
-                  <div className="legend-color high"></div>
-                  <div>
-                    <span className="legend-name">High Risk</span>
-                    <span className="legend-desc">Immediate safety concern</span>
-                  </div>
-                </div>
-                <div className="legend-item">
-                  <div className="legend-color medium"></div>
-                  <div>
-                    <span className="legend-name">Medium Risk</span>
-                    <span className="legend-desc">Caution advised</span>
-                  </div>
-                </div>
-                <div className="legend-item">
-                  <div className="legend-color low"></div>
-                  <div>
-                    <span className="legend-name">Low Risk</span>
-                    <span className="legend-desc">Minor concern</span>
-                  </div>
-                </div>
-                <div className="legend-item">
-                  <div className="legend-color pattern"></div>
-                  <div>
-                    <span className="legend-name">Pattern Detected</span>
-                    <span className="legend-desc">Multiple reports clustered</span>
-                  </div>
-                </div>
-              </div>
+        {openDropdown === 'layers' && (
+          <div className="nav-panel-layers">
+            <div className="panel-header">
+              <Layers size={14} />
+              <span>MAP LAYERS</span>
             </div>
-          )}
-        </div>
 
-        {/* Privacy Badge */}
-        <div className="privacy-badge">
-          <Lock size={14} />
-          <span>Anonymous • Auto-expire 30d</span>
-        </div>
+            <div className={`layer-item ${selectedLayers.perception ? 'active' : ''}`} onClick={() => toggleLayer('perception')}>
+              <div className="layer-visual">
+                <Eye size={18} className="layer-icon-svg" />
+              </div>
+              <div className="layer-label">
+                <span>Perception</span>
+                <small>User-reported safety feels</small>
+              </div>
+              <div className={`layer-toggle-switch ${selectedLayers.perception ? 'on' : ''}`}></div>
+            </div>
+
+            <div className={`layer-item ${selectedLayers.crime ? 'active' : ''}`} onClick={() => toggleLayer('crime')}>
+              <div className="layer-visual">
+                <Shield size={18} className="layer-icon-svg" />
+              </div>
+              <div className="layer-label">
+                <span>Verified Incidents</span>
+                <small>Confirmed security reports</small>
+              </div>
+              <div className={`layer-toggle-switch ${selectedLayers.crime ? 'on' : ''}`}></div>
+            </div>
+
+            <div className={`layer-item ${selectedLayers.patterns ? 'active' : ''}`} onClick={() => toggleLayer('patterns')}>
+              <div className="layer-visual">
+                <TrendingUp size={18} className="layer-icon-svg" />
+              </div>
+              <div className="layer-label">
+                <span>Intelligence Patterns</span>
+                <small>AI-cluster analysis</small>
+              </div>
+              <div className={`layer-toggle-switch ${selectedLayers.patterns ? 'on' : ''}`}></div>
+            </div>
+          </div>
+        )}
       </div>
     </nav>
   );

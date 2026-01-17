@@ -69,7 +69,7 @@ const GroupChat = ({ group, onBack }) => {
     return (
         <div className="group-chat">
             {/* Header */}
-            <div className="chat-header">
+            <div className="feed-header">
                 <button className="back-btn" onClick={onBack}>
                     <ArrowLeft size={18} />
                 </button>
@@ -78,7 +78,7 @@ const GroupChat = ({ group, onBack }) => {
                     <div>
                         <span className="chat-group-name">{group.name}</span>
                         <span className="chat-group-members">
-                            {group.memberCount || group.members?.length || 0} members
+                            {group.memberCount || group.members?.length || 0} nodes connected
                         </span>
                     </div>
                 </div>

@@ -1,5 +1,5 @@
 import React, { useEffect, useState, useRef, useCallback } from 'react';
-import { MapContainer, TileLayer, Marker, Circle, useMap } from 'react-leaflet';
+import { MapContainer, TileLayer, Marker, Circle, useMap, ZoomControl, Popup } from 'react-leaflet';
 import L from 'leaflet';
 import 'leaflet/dist/leaflet.css';
 import { useMapStore } from '../stores/mapStore';
@@ -22,24 +22,57 @@ const RISK_COLORS = {
 };
 
 // Create custom circle marker icon
-const createCircleIcon = (color, size = 16) => {
+const createCircleIcon = (color, size = 18) => {
   return L.divIcon({
     className: 'custom-marker',
     html: `<div style="
       width: ${size}px;
       height: ${size}px;
       background-color: ${color};
-      border: 2px solid white;
+      border: 3px solid rgba(255, 255, 255, 0.4);
       border-radius: 50%;
-      box-shadow: 0 2px 4px rgba(0,0,0,0.3);
-    "></div>`,
+      box-shadow: 0 0 15px ${color}, 0 4px 8px rgba(0,0,0,0.5);
+      position: relative;
+    ">
+      <div style="
+        position: absolute;
+        inset: 0;
+        border-radius: 50%;
+        border: 1px solid white;
+        opacity: 0.8;
+      "></div>
+    </div>`,
     iconSize: [size, size],
     iconAnchor: [size / 2, size / 2],
   });
 };
 
-// User location icon (blue)
-const userLocationIcon = createCircleIcon('#3b82f6', 16);
+// User location icon (Deep Blue with high-end glow)
+const userLocationIcon = createCircleIcon('#3b82f6', 20);
+
+// Mouse Position Tracking Component
+function MousePosition() {
+  const [coords, setCoords] = useState({ lat: 0, lng: 0 });
+  const map = useMap();
+
+  useEffect(() => {
+    const handleMouseMove = (e) => {
+      setCoords(e.latlng);
+    };
+    map.on('mousemove', handleMouseMove);
+    return () => map.off('mousemove', handleMouseMove);
+  }, [map]);
+
+  return (
+    <div className="map-coords-display">
+      <span className="coord-label">LAT:</span>
+      <span className="coord-val">{coords.lat.toFixed(5)}</span>
+      <span className="coord-divider">|</span>
+      <span className="coord-label">LNG:</span>
+      <span className="coord-val">{coords.lng.toFixed(5)}</span>
+    </div>
+  );
+}
 
 // Map events component
 function MapEvents({ onCenterChange }) {
@@ -152,8 +185,8 @@ const MapView = () => {
     return (
       <div className="map-container">
         <div className="map-loading">
-          <div className="spinner-small"></div>
-          <p>Initializing map...</p>
+          <div className="map-loading-spinner"></div>
+          <p>ESTABLISHING SECURE PROTOCOL...</p>
         </div>
       </div>
     );
@@ -161,17 +194,22 @@ const MapView = () => {
 
   return (
     <div className="map-container">
+      <div className="map-vignette"></div>
+      <div className="map-center-crosshair"></div>
+
       <MapContainer
         center={[mapCenter.lat, mapCenter.lng]}
         zoom={zoom}
         style={{ width: '100%', height: '100%' }}
-        zoomControl={true}
+        zoomControl={false}
       >
         <TileLayer
           attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors &copy; <a href="https://carto.com/attributions">CARTO</a>'
           url="https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png"
         />
 
+        <ZoomControl position="bottomright" />
+        <MousePosition />
         <MapEvents onCenterChange={handleCenterChange} />
         <RecenterMap location={userLocation} />
 
@@ -191,13 +229,15 @@ const MapView = () => {
               <Circle
                 key={report.id}
                 center={[report.location.lat, report.location.lng]}
-                radius={100}
+                radius={150}
                 pathOptions={{
                   fillColor: RISK_COLORS[report.riskLevel],
-                  fillOpacity: 0.2,
+                  fillOpacity: 0.15,
                   color: RISK_COLORS[report.riskLevel],
-                  opacity: 0.5,
-                  weight: 1,
+                  opacity: 0.4,
+                  weight: 2,
+                  dashArray: '5, 10',
+                  lineCap: 'round'
                 }}
               />
             ))}
@@ -211,7 +251,29 @@ const MapView = () => {
                 key={report.id}
                 position={[report.location.lat, report.location.lng]}
                 icon={createCircleIcon(RISK_COLORS[report.riskLevel], 20)}
-              />
+              >
+                <Popup className="premium-popup">
+                  <div className="popup-card">
+                    <div className={`popup-risk-badge ${report.riskLevel}`}>
+                      {report.riskLevel.toUpperCase()} RISK
+                    </div>
+                    <div className="popup-content-main">
+                      <h4 className="popup-title">{report.category || 'Incident Report'}</h4>
+                      <p className="popup-desc">{report.description}</p>
+                      <div className="popup-footer">
+                        <span className="popup-time">
+                          {new Date(report.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                        </span>
+                        {report.confirmCount > 0 && (
+                          <span className="popup-confirmed">
+                            • {report.confirmCount} Confirmed
+                          </span>
+                        )}
+                      </div>
+                    </div>
+                  </div>
+                </Popup>
+              </Marker>
             ))}
 
         {/* Pattern clusters */}

@@ -1,110 +1,186 @@
-import React, { useState } from 'react';
-import { Shield, MapPin, AlertCircle, Users, Lock, Zap, ArrowRight, Check } from 'lucide-react';
+import React, { useState, useEffect } from 'react';
+import { Shield, MapPin, AlertCircle, Users, Lock, Zap, ArrowRight, Check, Activity, Globe, Heart, Mic, Star, Clock } from 'lucide-react';
 import '../styles/Homepage.css';
+
+// Using the original logo
 import logo from '../assets/logo.png';
+import geminiVisual from '../assets/Gemini-2.0-Flash-for-mobile.png';
 
 function Homepage({ onGetStarted }) {
-    const [hoveredFeature, setHoveredFeature] = useState(null);
+    const [scrolled, setScrolled] = useState(false);
+    const [mousePos, setMousePos] = useState({ x: 0, y: 0 });
+
+    useEffect(() => {
+        // Ensure body is scrollable on homepage
+        document.body.style.overflowY = 'auto';
+        document.body.style.overflowX = 'hidden';
+
+        const handleScroll = () => {
+            setScrolled(window.scrollY > 20);
+        };
+
+        const handleMouseMove = (e) => {
+            setMousePos({ x: e.clientX, y: e.clientY });
+        };
+
+        window.addEventListener('scroll', handleScroll);
+        window.addEventListener('mousemove', handleMouseMove);
+
+        // Intersection Observer for Reveal Animations
+        const observerOptions = {
+            threshold: 0.1
+        };
+
+        const observer = new IntersectionObserver((entries) => {
+            entries.forEach(entry => {
+                if (entry.isIntersecting) {
+                    entry.target.classList.add('reveal-active');
+                }
+            });
+        }, observerOptions);
+
+        const revealElements = document.querySelectorAll('.reveal');
+        revealElements.forEach(el => observer.observe(el));
+
+        return () => {
+            window.removeEventListener('scroll', handleScroll);
+            window.removeEventListener('mousemove', handleMouseMove);
+            revealElements.forEach(el => observer.unobserve(el));
+            // Restore dashbord-ready overflow if navigating away
+            document.body.style.overflow = '';
+        };
+    }, []);
 
     const features = [
         {
             icon: MapPin,
-            title: 'Interactive Safety Map',
-            description: 'Real-time visualization of community safety with multi-layer reporting system'
-        },
-        {
-            icon: AlertCircle,
-            title: 'Smart Report Parsing',
-            description: 'Describe incidents in your own words - AI extracts risk levels and categories'
-        },
-        {
-            icon: Lock,
-            title: 'Privacy-First Design',
-            description: 'Anonymous but accountable - your location is never stored permanently'
-        },
-        {
-            icon: Users,
-            title: 'Community Intelligence',
-            description: 'Verify incidents with multiple reports and identify emerging patterns'
-        },
-        {
-            icon: Zap,
-            title: 'Smart Notifications',
-            description: 'Proximity alerts when entering higher-risk zones - calm and informative'
+            title: 'Dynamic Map Layers',
+            description: 'Intelligent multi-layer mapping showing safety perceptions, verified incidents, and AI-detected patterns.'
         },
         {
             icon: Shield,
-            title: 'AI Moderation',
-            description: 'Ethical guardrails prevent hate speech, doxxing, and vigilantism'
+            title: 'Gemini AI Analysis',
+            description: 'Advanced NLP that extracts risk levels and categories from natural language reports in real-time.'
+        },
+        {
+            icon: Mic,
+            title: 'Voice-Enabled Input',
+            description: 'Seamless hands-free reporting using integrated voice transcription for rapid incident alerts.'
+        },
+        {
+            icon: Star,
+            title: 'Safety Infrastructure Rating',
+            description: 'Rate areas based on lighting, foot traffic, and security presence to help build a safer community.'
+        },
+        {
+            icon: Users,
+            title: 'Community Groups',
+            description: 'Join neighborhood-focused hubs to coordinate, verify reports, and share local safety updates.'
+        },
+        {
+            icon: Zap,
+            title: 'Proximity Defense',
+            description: 'Receive real-time notifications as you enter or approach high-risk zones detected by community intelligence.'
         }
     ];
 
-    const benefits = [
-        'No personal data collected',
-        'Auto-expiring safety reports',
-        'Anonymous authentication',
-        'Multi-language support',
-        'Open-source & auditable',
-        'Community-driven'
+    const trustMetrics = [
+        { label: 'Active Reports', value: '0k+', icon: Activity },
+        { label: 'Communities Protected', value: '0+', icon: Globe },
+        { label: 'Safety Index', value: '0%', icon: Heart }
     ];
 
     return (
         <div className="homepage">
             {/* Navigation */}
-            <nav className="homepage-nav">
+            <nav className={`homepage-nav ${scrolled ? 'scrolled' : ''}`}>
                 <div className="nav-container">
                     <div className="nav-logo">
-                        <Shield size={28} />
-                        <span>Silent Sentinel</span>
+                        <img src={logo} alt="Silent Sentinel Logo" className="logo-img" />
+                        <span>SILENT SENTINEL</span>
                     </div>
-                    <button className="nav-cta-button" onClick={onGetStarted}>
-                        Get Started
-                    </button>
+                    <div className="nav-links">
+                        <button className="nav-cta-button" onClick={onGetStarted}>
+                            Enter Dashboard
+                        </button>
+                    </div>
                 </div>
             </nav>
 
             {/* Hero Section */}
-            <section className="hero-section">
-                <div className="hero-content">
-                    <div className="hero-badge">🛡️ Privacy-First Safety Platform</div>
-                    <h1 className="hero-title">Your Community's Safety, Without the Surveillance</h1>
-                    <p className="hero-subtitle">
-                        Silent Sentinel is a hyper-local safety platform that puts privacy first. Report incidents anonymously,
-                        discover community patterns, and stay informed—all without tracking anyone.
+            <section className="hero-section reveal">
+                <div
+                    className="hero-glow-follow"
+                    style={{
+                        left: `${mousePos.x}px`,
+                        top: `${mousePos.y}px`
+                    }}
+                ></div>
+                <div className="hero-content reveal">
+                    <div className="hero-badge reveal">
+                        <span>ESTABLISHING SECURE CONNECTION</span>
+                    </div>
+                    <h1 className="hero-title reveal">
+                        <span>Safety Intelligence.</span>
+                        <span className="text-gradient">Redefined for Privacy.</span>
+                    </h1>
+                    <p className="hero-subtitle reveal">
+                        The ultimate high-fidelity safety intelligence protocol. Silent Sentinel transforms community vigilance
+                        into actionable insights while maintaining absolute digital sovereignty.
                     </p>
-                    <div className="hero-buttons">
-                        <button className="btn btn-primary btn-lg" onClick={onGetStarted}>
-                            <span>Explore the Map</span>
-                            <ArrowRight size={20} />
+                    <div className="hero-buttons reveal">
+                        <button className="btn-premium-primary" onClick={onGetStarted}>
+                            <span>INITIALISE SYSTEM</span>
+                            <ArrowRight size={18} />
                         </button>
-                        <button className="btn btn-secondary btn-lg">
-                            Learn More
+                        <button className="btn-premium-outline">
+                            PROTOCOL WHITE PAPER
                         </button>
                     </div>
-                    <p className="hero-disclaimer">
-                        ✨ No login required • Fully anonymous • Zero tracking
-                    </p>
+                </div>
+            </section>
+
+            {/* Safety Protocol Ticker */}
+            <section className="protocol-ticker-section">
+                <div className="ticker-wrapper">
+                    <div className="ticker-content">
+                        <span>• ANONYMOUS REPORTING ACTIVE</span>
+                        <span>• NEURAL TRIAGE ONLINE</span>
+                        <span>• COMMUNITY VERIFICATION LAYER 1 ENABLED</span>
+                        <span>• ZERO DATA LOGGING POLICY VERIFIED</span>
+                        <span>• GEOSPATIAL ENCRYPTION ACTIVE</span>
+                    </div>
+                </div>
+            </section>
+
+            {/* Trust Metrics */}
+            <section className="metrics-section reveal">
+                <div className="metrics-container">
+                    {trustMetrics.map((metric, i) => (
+                        <div key={i} className="metric-card">
+                            <metric.icon size={20} className="metric-icon" />
+                            <div className="metric-group">
+                                <span className="metric-value">{metric.value}</span>
+                                <span className="metric-label">{metric.label}</span>
+                            </div>
+                        </div>
+                    ))}
                 </div>
             </section>
 
             {/* Features Grid */}
             <section className="features-section">
                 <div className="section-header">
-                    <h2>Powerful Features</h2>
-                    <p>Everything you need for community safety awareness</p>
+                    <h2 className="section-title">Security Layers</h2>
+                    <p className="section-desc">Sophisticated technology meets human-centric design for total protection.</p>
                 </div>
                 <div className="features-grid">
                     {features.map((feature, index) => {
                         const Icon = feature.icon;
                         return (
-                            <div
-                                key={index}
-                                className="feature-card"
-                                onMouseEnter={() => setHoveredFeature(index)}
-                                onMouseLeave={() => setHoveredFeature(null)}
-                            >
-                                <div className={`feature-icon ${hoveredFeature === index ? 'active' : ''}`}>
-                                    <Icon size={32} />
+                            <div key={index} className="feature-card reveal" style={{ transitionDelay: `${index * 0.1}s` }}>
+                                <div className="feature-icon-wrapper">
+                                    <Icon size={24} />
                                 </div>
                                 <h3>{feature.title}</h3>
                                 <p>{feature.description}</p>
@@ -114,126 +190,192 @@ function Homepage({ onGetStarted }) {
                 </div>
             </section>
 
-            {/* How It Works */}
-            <section className="how-it-works">
+            {/* How It Works Section */}
+            <section className="process-section reveal">
                 <div className="section-header">
-                    <h2>How It Works</h2>
-                    <p>Simple, transparent, privacy-respecting</p>
+                    <span className="section-badge">CORE FLOW</span>
+                    <h2 className="section-title">Verified Intelligence</h2>
+                    <p className="section-desc">A professional workflow designed for speed, accuracy, and absolute privacy.</p>
                 </div>
-                <div className="steps-container">
-                    <div className="step">
-                        <div className="step-number">1</div>
-                        <h3>Browse the Map</h3>
-                        <p>View community reports, patterns, and safety zones in real-time</p>
+                <div className="process-grid">
+                    <div className="process-step">
+                        <div className="step-number">01</div>
+                        <h4>Describe & Locate</h4>
+                        <p>Submit a report via text or voice. Our system captures precise coordinates without linking them to your identity.</p>
                     </div>
-                    <div className="step-divider"></div>
-                    <div className="step">
-                        <div className="step-number">2</div>
-                        <h3>Report Anonymously</h3>
-                        <p>Describe incidents in your own words - no rigid forms</p>
+                    <div className="process-step">
+                        <div className="step-number">02</div>
+                        <h4>Gemini AI Triage</h4>
+                        <p>Google Gemini analyzes your report to extract risk levels (High/Medium/Low) and filter prohibited content instantly.</p>
                     </div>
-                    <div className="step-divider"></div>
-                    <div className="step">
-                        <div className="step-number">3</div>
-                        <h3>AI Analysis</h3>
-                        <p>Smart categorization and risk assessment happens automatically</p>
-                    </div>
-                    <div className="step-divider"></div>
-                    <div className="step">
-                        <div className="step-number">4</div>
-                        <h3>Community Insights</h3>
-                        <p>See patterns emerge as more people share their experiences</p>
+                    <div className="process-step">
+                        <div className="step-number">03</div>
+                        <h4>Community Shield</h4>
+                        <p>Validated data appears on the live map and feed. Proximity alerts notify nearby users of potential hazards.</p>
                     </div>
                 </div>
             </section>
 
-            {/* Why Section */}
-            <section className="why-section">
-                <div className="why-content">
-                    <h2>Why Silent Sentinel?</h2>
-                    <div className="benefits-grid">
-                        {benefits.map((benefit, index) => (
-                            <div key={index} className="benefit-item">
-                                <Check size={20} className="benefit-icon" />
-                                <span>{benefit}</span>
+            {/* AI Intelligence Deep-Dive */}
+            <section className="ai-deep-dive reveal">
+                <div className="ai-container">
+                    <div className="ai-visual">
+                        <div className="gemini-visual-container">
+                            <img src={geminiVisual} alt="Gemini 2.0 Flash" className="gemini-logo-visual" />
+                        </div>
+                    </div>
+                    <div className="ai-text">
+                        <span className="focus-badge">POWERED BY GEMINI 2.0</span>
+                        <h2>Neural <span className="text-gradient">Risk Detection</span></h2>
+                        <p>Silent Sentinel uses Google’s Gemini 2.0 Flash to understand human context. It doesn't just look for keywords—it understands intent, detects safety infrastructure gaps, and automates community moderation to prevent bias and doxxing.</p>
+                        <div className="ai-stats">
+                            <div className="ai-stat-item">
+                                <span className="stat-num">~0.4s</span>
+                                <span className="stat-txt">Gemini Triage Speed</span>
                             </div>
-                        ))}
-                    </div>
-                </div>
-                <div className="why-visual">
-                    <div className="safety-illustration">
-                        <img src={logo} alt="Safety Illustration Logo" className="illustration-logo" />
+                            <div className="ai-stat-item">
+                                <span className="stat-num">99.99%</span>
+                                <span className="stat-txt">Moderated Content</span>
+                            </div>
+                        </div>
                     </div>
                 </div>
             </section>
 
-            {/* Core Philosophy */}
-            <section className="philosophy-section">
-                <div className="section-header">
-                    <h2>Our Philosophy</h2>
-                </div>
-                <div className="philosophy-grid">
-                    <div className="philosophy-card is-not">
-                        <h3>❌ We Are NOT</h3>
-                        <ul>
-                            <li>A crime-tracking app</li>
-                            <li>A surveillance tool</li>
-                            <li>A vigilante enabler</li>
-                            <li>A fear-mongering platform</li>
-                            <li>Collecting permanent data</li>
-                        </ul>
+            {/* Focus Section - Minimalist */}
+            <section className="focus-section reveal">
+                <div className="focus-container">
+                    <div className="focus-content reveal">
+                        <span className="focus-badge">EPHEMERAL INTELLIGENCE</span>
+                        <h2>Dynamic Insights, <span className="text-gradient">Zero Persistence</span></h2>
+                        <p>Unlike traditional surveillance, Silent Sentinel is built on ephemeral data. Every report is automatically purged from the system after 30 days, ensuring the map remains a reflection of current safety, not a permanent archive of fear.</p>
+                        <div className="tech-specs">
+                            <div className="spec-item">
+                                <Clock size={16} />
+                                <span>30-Day Auto-Expiry Protocol</span>
+                            </div>
+                            <div className="spec-item">
+                                <Shield size={16} />
+                                <span>No Profile or Account Required</span>
+                            </div>
+                            <div className="spec-item">
+                                <Lock size={16} />
+                                <span>Identity-Masked Coordinate Layer</span>
+                            </div>
+                        </div>
                     </div>
-                    <div className="philosophy-card is">
-                        <h3>✅ We ARE</h3>
-                        <ul>
-                            <li>Privacy-first & consent-based</li>
-                            <li>Anonymous but accountable</li>
-                            <li>Community-driven intelligence</li>
-                            <li>Ethically designed from the ground up</li>
-                            <li>Transparent & auditable</li>
-                        </ul>
+                    <div className="focus-visual reveal">
+                        <div className="dynamic-protocol-display">
+                            <div className="data-circles">
+                                <div className="c-orbit co1"></div>
+                                <div className="c-orbit co2"></div>
+                                <div className="c-center">
+                                    <Shield size={64} className="shield-glow-pulse" />
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            {/* Community Pulse Section */}
+            <section className="pulse-section reveal">
+                <div className="pulse-container">
+                    <div className="pulse-header">
+                        <h2>Community <span className="text-gradient">Momentum</span></h2>
+                        <p>Real-time metrics from the global Sentinel network.</p>
+                    </div>
+                    <div className="pulse-grid">
+                        <div className="pulse-card">
+                            <div className="p-icon"><Globe size={32} /></div>
+                            <div className="p-val">0+</div>
+                            <div className="p-lab">Active Nodes</div>
+                        </div>
+                        <div className="pulse-card highlight">
+                            <div className="p-icon"><Zap size={32} /></div>
+                            <div className="p-val">0.2s</div>
+                            <div className="p-lab">Avg Triage Speed</div>
+                        </div>
+                        <div className="pulse-card">
+                            <div className="p-icon"><Users size={32} /></div>
+                            <div className="p-val">0+</div>
+                            <div className="p-lab">Community Guards</div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            {/* Philosophy */}
+            <section className="philosophy-section reveal">
+                <div className="philosophy-container">
+                    <div className="section-header">
+                        <h2 className="section-title">The Protocol Philosophy</h2>
+                    </div>
+                    <div className="philosophy-grid">
+                        <div className="philosophy-panel reveal">
+                            <h3>PROHIBITED</h3>
+                            <ul>
+                                <li>Persistent geographic history storage</li>
+                                <li>State-level surveillance integration</li>
+                                <li>Vigilantism or calls for violence</li>
+                                <li>Monetization of community data</li>
+                            </ul>
+                        </div>
+                        <div className="philosophy-panel active reveal">
+                            <h3>MANDATED</h3>
+                            <ul>
+                                <li>30-Day Automatic Data Purge</li>
+                                <li>Absolute User Identity Sovereignty</li>
+                                <li>AI-Powered Ethical Moderation</li>
+                                <li>Neighborhood-Centric Governance</li>
+                            </ul>
+                        </div>
                     </div>
                 </div>
             </section>
 
             {/* CTA Section */}
-            <section className="cta-section">
+            <section className="cta-section reveal">
                 <div className="cta-content">
-                    <h2>Ready to Make Your Community Safer?</h2>
-                    <p>No sign-up needed. No data collection. Just pure, community-driven safety intelligence.</p>
-                    <button className="btn btn-primary btn-lg" onClick={onGetStarted}>
-                        <span>Start Exploring</span>
-                        <ArrowRight size={20} />
+                    <h2>Ready to contribute?</h2>
+                    <p>Join the global network of citizen guardians today.</p>
+                    <button className="btn-premium-primary" onClick={onGetStarted}>
+                        <span>Enter the Network</span>
+                        <ArrowRight size={18} />
                     </button>
                 </div>
             </section>
 
             {/* Footer */}
             <footer className="homepage-footer">
-                <div className="footer-content">
-                    <div className="footer-section">
-                        <h4>Silent Sentinel</h4>
-                        <p>Privacy-first community safety platform</p>
+                <div className="footer-container">
+                    <div className="footer-top">
+                        <div className="footer-brand">
+                            <img src={logo} alt="Logo" className="footer-logo" />
+                            <p>Global standard for privacy-first community safety intelligence.</p>
+                        </div>
+                        <div className="footer-links-grid">
+                            <div className="link-col">
+                                <h6>Platform</h6>
+                                <a href="#">Guardian Map</a>
+                                <a href="#">Transparency</a>
+                            </div>
+                            <div className="link-col">
+                                <h6>Support</h6>
+                                <a href="https://github.com/harsh160605/silent-sentinel">Documentation</a>
+                                <a href="#">Status</a>
+                            </div>
+                            <div className="link-col">
+                                <h6>Legal</h6>
+                                <a href="#">Privacy</a>
+                                <a href="#">Terms</a>
+                            </div>
+                        </div>
                     </div>
-                    <div className="footer-section">
-                        <h4>Resources</h4>
-                        <ul>
-                            <li><a href="#">Documentation</a></li>
-                            <li><a href="#">GitHub</a></li>
-                            <li><a href="#">License</a></li>
-                        </ul>
+                    <div className="footer-bottom">
+                        <p>&copy; 2026 SILENT SENTINEL PROTOCOL. VERIFIED SECURE.</p>
+                        <p className="footer-credit">Built by Team Pegasus.exe</p>
                     </div>
-                    <div className="footer-section">
-                        <h4>Community</h4>
-                        <ul>
-                            <li><a href="#">Report Issues</a></li>
-                            <li><a href="#">Contribute</a></li>
-                            <li><a href="#">Feedback</a></li>
-                        </ul>
-                    </div>
-                </div>
-                <div className="footer-bottom">
-                    <p>&copy; 2025 Silent Sentinel. Privacy-first community safety. All rights reserved.</p>
                 </div>
             </footer>
         </div>

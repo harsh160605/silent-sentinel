@@ -178,9 +178,9 @@ const ReportModal = ({ onClose }) => {
 
         {step === 1 && (
           <>
-            <h2>Report Safety Concern</h2>
+            <h2>Incident Triage</h2>
             <p className="modal-subtitle">
-              Describe what's happening in your own words. AI will understand and categorize it.
+              Describe the situation. Our AI protocol will analyze, categorize, and prioritize the intelligence.
             </p>
 
             {/* Quick Templates Section */}
@@ -365,8 +365,8 @@ const ReportModal = ({ onClose }) => {
 
         {step === 2 && parsedData && (
           <>
-            <h2>Review Report</h2>
-            <p className="modal-subtitle">Please confirm the details extracted by AI</p>
+            <h2>Intelligence Audit</h2>
+            <p className="modal-subtitle">Review the data extracted by the Gemini Protocol.</p>
 
             <div className="review-card">
               <div className="review-item">
@@ -427,10 +427,9 @@ const ReportModal = ({ onClose }) => {
           <>
             <div className="success-container">
               <CheckCircle size={64} className="text-success" />
-              <h2>Report Submitted</h2>
+              <h2>Intelligence Logged</h2>
               <p>
-                Thank you for contributing to community safety. Your anonymous report has been recorded
-                and will help others stay informed.
+                Your report has been successfully transmitted. Nearby nodes will be updated once the AI verification protocol completes.
               </p>
               <button className="btn-primary" onClick={onClose}>
                 Close

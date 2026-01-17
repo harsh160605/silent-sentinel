@@ -102,11 +102,11 @@ const SafetyRatingModal = ({ location, onClose }) => {
                 ) : (
                     <>
                         <div className="rating-header">
-                            <MapPin size={20} className="location-icon" />
                             <div>
-                                <h2>Rate This Area</h2>
+                                <h2>Node Safety Rating</h2>
                                 <span className="location-coords">
-                                    {location.lat.toFixed(4)}, {location.lng.toFixed(4)}
+                                    <MapPin size={10} />
+                                    COORD: {location.lat.toFixed(6)}, {location.lng.toFixed(6)}
                                 </span>
                             </div>
                         </div>
@@ -154,7 +154,6 @@ const SafetyRatingModal = ({ location, onClose }) => {
                             {RATING_CATEGORIES.map(category => (
                                 <div key={category.key} className="rating-category">
                                     <div className="category-header">
-                                        <span className="category-icon">{category.icon}</span>
                                         <span className="category-label">{category.label}</span>
                                     </div>
                                     <StarRating

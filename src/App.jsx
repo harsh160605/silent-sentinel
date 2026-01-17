@@ -72,28 +72,10 @@ function App() {
 
   return (
     <div className="app-container">
-      {/* Header */}
-      <header className="app-header">
-        <div className="header-content">
-          <button className="logo-button" onClick={handleGoHome} title="Back to Homepage">
-            <div className="logo-container">
-              <Shield className="logo-icon" />
-              <h1>Silent Sentinel</h1>
-            </div>
-          </button>
-          <div className="header-center">
-            <p className="tagline">Privacy-first community safety</p>
-          </div>
-          <button className="home-button" onClick={handleGoHome} title="Back to Homepage">
-            <Home size={18} />
-            <span>Home</span>
-          </button>
-        </div>
-      </header>
-
       {/* Main Content */}
       <div className="main-content">
         <Sidebar
+          onGoHome={handleGoHome}
           onCreateReport={() => setShowReportModal(true)}
           onToggleFeed={() => setShowFeed(!showFeed)}
           feedOpen={showFeed}

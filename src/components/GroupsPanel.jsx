@@ -116,153 +116,152 @@ const GroupsPanel = ({ isOpen, onClose }) => {
     if (!isOpen) return null;
 
     return (
-        <div className="modal-overlay" onClick={onClose}>
-            <div className="groups-panel" onClick={(e) => e.stopPropagation()}>
-                {selectedGroup ? (
-                    <GroupChat
-                        group={selectedGroup}
-                        onBack={() => setSelectedGroup(null)}
-                    />
-                ) : (
-                    <>
-                        {/* Header */}
-                        <div className="groups-header">
-                            <div className="groups-title">
-                                <Users size={18} />
-                                <h3>Community Groups</h3>
-                            </div>
-                            <div className="groups-header-actions">
-                                <button className="btn-create-group" onClick={() => setShowCreateModal(true)}>
-                                    <Plus size={16} />
-                                    <span>Create</span>
-                                </button>
-                                <button className="btn-close-panel" onClick={onClose} title="Close Panel">
-                                    <X size={18} />
-                                </button>
-                            </div>
+        <div className="groups-panel">
+            {selectedGroup ? (
+                <GroupChat
+                    group={selectedGroup}
+                    onBack={() => setSelectedGroup(null)}
+                />
+            ) : (
+                <>
+                    {/* Header */}
+                    <div className="feed-header">
+                        <div className="feed-title">
+                            <Users size={18} />
+                            <h3>Community Hubs</h3>
+                            <span className="feed-count">{userGroups.length}</span>
                         </div>
-
-                        {/* Join Group */}
-                        <div className="join-group-section">
-                            <div className="join-input-group">
-                                <input
-                                    type="text"
-                                    placeholder="Enter invite code"
-                                    value={joinCode}
-                                    onChange={(e) => setJoinCode(e.target.value.toUpperCase())}
-                                    maxLength={6}
-                                />
-                                <button
-                                    className="btn-join"
-                                    onClick={handleJoinGroup}
-                                    disabled={!joinCode.trim() || joining}
-                                >
-                                    {joining ? <Loader size={14} className="spinner" /> : <LogIn size={14} />}
-                                </button>
-                            </div>
-                            {joinError && <span className="join-error">{joinError}</span>}
-                        </div>
-
-                        {/* Tabs */}
-                        <div className="groups-tabs">
-                            <button
-                                className={`tab-btn ${activeTab === 'my-groups' ? 'active' : ''}`}
-                                onClick={() => setActiveTab('my-groups')}
-                            >
-                                My Groups ({userGroups.length})
+                        <div className="groups-header-actions">
+                            <button className="btn-create-group" onClick={() => setShowCreateModal(true)}>
+                                <Plus size={16} />
+                                <span>Create</span>
                             </button>
-                            <button
-                                className={`tab-btn ${activeTab === 'discover' ? 'active' : ''}`}
-                                onClick={() => setActiveTab('discover')}
-                            >
-                                Discover
+                            <button className="btn-close-panel" onClick={onClose} title="Close Panel">
+                                <X size={18} />
                             </button>
                         </div>
+                    </div>
 
-                        {/* Groups List */}
-                        <div className="groups-list">
-                            {loading ? (
-                                <div className="groups-loading">
-                                    <Loader size={24} className="spinner" />
-                                    <span>Loading groups...</span>
-                                </div>
-                            ) : activeTab === 'my-groups' ? (
-                                userGroups.length > 0 ? (
-                                    userGroups.map(group => (
-                                        <div
-                                            key={group.id}
-                                            className="group-card"
-                                            onClick={() => handleGroupClick(group)}
-                                        >
-                                            <div className="group-icon">{group.icon || '🏘️'}</div>
-                                            <div className="group-info">
-                                                <div className="group-name-row">
-                                                    <span className="group-name">{group.name}</span>
-                                                    {!group.isPrivate && <span className="public-badge">Public</span>}
-                                                </div>
-                                                <span className="group-members">
-                                                    {group.memberCount || group.members?.length || 0} members • Click to chat
-                                                </span>
-                                            </div>
-                                            <div className="group-actions">
-                                                <button
-                                                    className="copy-code-btn"
-                                                    onClick={(e) => handleCopyCode(group.inviteCode, e)}
-                                                    title="Copy invite code"
-                                                >
-                                                    {copiedCode === group.inviteCode ? (
-                                                        <Check size={14} className="copied" />
-                                                    ) : (
-                                                        <Copy size={14} />
-                                                    )}
-                                                </button>
-                                                <ChevronRight size={16} className="chevron" />
-                                            </div>
-                                        </div>
-                                    ))
-                                ) : (
-                                    <div className="no-groups">
-                                        <Users size={32} />
-                                        <p>No groups yet</p>
-                                        <span>Create a group or join one with an invite code</span>
-                                    </div>
-                                )
-                            ) : (
-                                /* Discovery Tab */
-                                publicGroups.length > 0 ? (
-                                    publicGroups.map(group => (
-                                        <div
-                                            key={group.id}
-                                            className="group-card discovery-card"
-                                        >
-                                            <div className="group-icon">{group.icon || '🏘️'}</div>
-                                            <div className="group-info">
+                    {/* Join Group */}
+                    <div className="join-group-section">
+                        <div className="join-input-group">
+                            <input
+                                type="text"
+                                placeholder="Enter invite code"
+                                value={joinCode}
+                                onChange={(e) => setJoinCode(e.target.value.toUpperCase())}
+                                maxLength={6}
+                            />
+                            <button
+                                className="btn-join"
+                                onClick={handleJoinGroup}
+                                disabled={!joinCode.trim() || joining}
+                            >
+                                {joining ? <Loader size={14} className="spinner" /> : <LogIn size={14} />}
+                            </button>
+                        </div>
+                        {joinError && <span className="join-error">{joinError}</span>}
+                    </div>
+
+                    {/* Tabs */}
+                    <div className="groups-tabs">
+                        <button
+                            className={`tab-btn ${activeTab === 'my-groups' ? 'active' : ''}`}
+                            onClick={() => setActiveTab('my-groups')}
+                        >
+                            My Groups
+                        </button>
+                        <button
+                            className={`tab-btn ${activeTab === 'discover' ? 'active' : ''}`}
+                            onClick={() => setActiveTab('discover')}
+                        >
+                            Discover
+                        </button>
+                    </div>
+
+                    {/* Groups List */}
+                    <div className="groups-list">
+                        {loading ? (
+                            <div className="groups-loading">
+                                <Loader size={24} className="spinner" />
+                                <span>Syncing Nodes...</span>
+                            </div>
+                        ) : activeTab === 'my-groups' ? (
+                            userGroups.length > 0 ? (
+                                userGroups.map(group => (
+                                    <div
+                                        key={group.id}
+                                        className="group-card"
+                                        onClick={() => handleGroupClick(group)}
+                                    >
+                                        <div className="group-icon">{group.icon || '🏘️'}</div>
+                                        <div className="group-info">
+                                            <div className="group-name-row">
                                                 <span className="group-name">{group.name}</span>
-                                                <span className="group-members">
-                                                    {group.memberCount || group.members?.length || 0} members
-                                                </span>
+                                                {!group.isPrivate && <span className="public-badge">Public</span>}
                                             </div>
-                                            <button
-                                                className="btn-join-direct"
-                                                onClick={() => handleJoinPublicGroup(group.id)}
-                                                disabled={joining}
-                                            >
-                                                {joining ? <Loader size={14} className="spinner" /> : 'Join'}
-                                            </button>
+                                            <span className="group-members">
+                                                {group.memberCount || group.members?.length || 0} members • Click to chat
+                                            </span>
                                         </div>
-                                    ))
-                                ) : (
-                                    <div className="no-groups">
-                                        <Users size={32} />
-                                        <p>No new public groups</p>
-                                        <span>Check back later for more communities to join!</span>
+                                        <div className="group-actions">
+                                            <button
+                                                className="copy-code-btn"
+                                                onClick={(e) => handleCopyCode(group.inviteCode, e)}
+                                                title="Copy invite code"
+                                            >
+                                                {copiedCode === group.inviteCode ? (
+                                                    <Check size={14} className="copied" />
+                                                ) : (
+                                                    <Copy size={14} />
+                                                )}
+                                            </button>
+                                            <ChevronRight size={16} className="chevron" />
+                                        </div>
                                     </div>
-                                )
-                            )}
-                        </div>
-                    </>
-                )}
-            </div>
+                                ))
+                            ) : (
+                                <div className="no-groups">
+                                    <Users size={32} />
+                                    <p>No active hubs</p>
+                                    <span>Form a group or enter an invite code to begin.</span>
+                                </div>
+                            )
+                        ) : (
+                            /* Discovery Tab */
+                            publicGroups.length > 0 ? (
+                                publicGroups.map(group => (
+                                    <div
+                                        key={group.id}
+                                        className="group-card discovery-card"
+                                    >
+                                        <div className="group-icon">{group.icon || '🏘️'}</div>
+                                        <div className="group-info">
+                                            <span className="group-name">{group.name}</span>
+                                            <span className="group-members">
+                                                {group.memberCount || group.members?.length || 0} members
+                                            </span>
+                                        </div>
+                                        <button
+                                            className="btn-join-direct"
+                                            onClick={() => handleJoinPublicGroup(group.id)}
+                                            disabled={joining}
+                                        >
+                                            {joining ? <Loader size={14} className="spinner" /> : 'Join'}
+                                        </button>
+                                    </div>
+                                ))
+                            ) : (
+                                <div className="no-groups">
+                                    <Users size={32} />
+                                    <p>No new public nodes</p>
+                                    <span>All local frequency nodes are currently private.</span>
+                                </div>
+                            )
+                        )}
+                    </div>
+                </>
+            )}
 
             {/* Create Group Modal */}
             {showCreateModal && (
@@ -276,4 +275,3 @@ const GroupsPanel = ({ isOpen, onClose }) => {
 };
 
 export default GroupsPanel;
-
