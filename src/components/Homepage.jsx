@@ -133,9 +133,6 @@ function Homepage({ onGetStarted }) {
                             <span>INITIALISE SYSTEM</span>
                             <ArrowRight size={18} />
                         </button>
-                        <button className="btn-premium-outline">
-                            PROTOCOL WHITE PAPER
-                        </button>
                     </div>
                 </div>
             </section>

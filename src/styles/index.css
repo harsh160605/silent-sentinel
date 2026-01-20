@@ -86,6 +86,7 @@ html {
   font-size: 16px;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
+  cursor: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="rgb(99, 102, 241)" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path></svg>') 12 0, auto;
 }
 
 body {
@@ -93,6 +94,7 @@ body {
   background: var(--bg-primary);
   color: var(--text-primary);
   line-height: 1.6;
+  cursor: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="rgb(99, 102, 241)" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path></svg>') 12 0, auto;
 }
 
 /* App Container */
@@ -1251,6 +1253,143 @@ body {
   border-radius: var(--radius-md);
   border: 1px solid var(--border-subtle);
   box-shadow: var(--shadow-lg);
+}
+
+/* ============================================
+   DARK MODE TOGGLE BUTTON
+   ============================================ */
+.dark-mode-toggle {
+  position: absolute;
+  top: 2rem;
+  right: 2rem;
+  width: 48px;
+  height: 48px;
+  background: var(--bg-glass-heavy);
+  backdrop-filter: blur(12px);
+  border: 1px solid var(--border-light);
+  border-radius: 12px;
+  color: var(--text-primary);
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+  z-index: 500;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+}
+
+.dark-mode-toggle:hover {
+  background: var(--bg-elevated);
+  border-color: var(--accent-primary);
+  transform: scale(1.1) translateY(-2px);
+  box-shadow: 0 6px 20px var(--accent-glow);
+}
+
+.dark-mode-toggle:active {
+  transform: scale(0.95);
+}
+
+.dark-mode-toggle svg {
+  stroke: currentColor;
+  animation: mode-transition 0.3s ease-in-out;
+}
+
+@keyframes mode-transition {
+  0% {
+    opacity: 0;
+    transform: rotate(-90deg) scale(0.5);
+  }
+  100% {
+    opacity: 1;
+    transform: rotate(0) scale(1);
+  }
+}
+
+/* Light Mode Styles */
+.map-light-mode {
+  --bg-primary-override: #f8f9fa;
+}
+
+.map-light-mode .map-container {
+  background: #f8f9fa;
+}
+
+.map-light-mode .leaflet-container {
+  background: #f0f0f0 !important;
+}
+
+.map-light-mode .map-coords-display {
+  background: rgba(255, 255, 255, 0.9);
+  backdrop-filter: blur(12px);
+  border: 1px solid rgba(99, 102, 241, 0.2);
+  color: #475569;
+}
+
+.map-light-mode .coord-label {
+  color: #64748b;
+}
+
+.map-light-mode .coord-val {
+  color: #0ea5e9;
+}
+
+.map-light-mode .coord-divider {
+  color: #cbd5e1;
+}
+
+.map-light-mode .map-vignette {
+  background: radial-gradient(circle, transparent 40%, rgba(248, 249, 250, 0.3) 100%);
+}
+
+.map-light-mode .dark-mode-toggle {
+  background: rgba(255, 255, 255, 0.85);
+  border-color: rgba(99, 102, 241, 0.2);
+  color: #1e293b;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+.map-light-mode .dark-mode-toggle:hover {
+  background: rgba(255, 255, 255, 0.95);
+  border-color: var(--accent-primary);
+  box-shadow: 0 4px 16px rgba(99, 102, 241, 0.2);
+}
+
+.map-light-mode .leaflet-control-zoom a {
+  background: rgba(255, 255, 255, 0.85) !important;
+  border: 1px solid rgba(99, 102, 241, 0.2) !important;
+  color: #1e293b !important;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08) !important;
+}
+
+.map-light-mode .leaflet-control-zoom a:hover {
+  background: rgba(255, 255, 255, 0.95) !important;
+  border-color: var(--accent-primary) !important;
+}
+
+.map-light-mode .leaflet-popup-content-wrapper {
+  background: rgba(255, 255, 255, 0.95) !important;
+  backdrop-filter: blur(20px);
+  border: 1px solid rgba(99, 102, 241, 0.15);
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1) !important;
+}
+
+.map-light-mode .leaflet-popup-content-wrapper,
+.map-light-mode .leaflet-popup-tip {
+  color: #1e293b !important;
+}
+
+.map-light-mode .leaflet-popup-tip {
+  background: rgba(255, 255, 255, 0.95) !important;
+  border: 1px solid rgba(99, 102, 241, 0.15);
+}
+
+.map-light-mode .map-center-crosshair {
+  opacity: 0.6;
+}
+
+.map-light-mode .map-center-crosshair::before,
+.map-light-mode .map-center-crosshair::after {
+  background: rgba(99, 102, 241, 0.5);
 }
 
 /* ============================================
