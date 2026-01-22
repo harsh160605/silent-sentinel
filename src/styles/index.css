@@ -1299,6 +1299,7 @@ body {
     opacity: 0;
     transform: rotate(-90deg) scale(0.5);
   }
+
   100% {
     opacity: 1;
     transform: rotate(0) scale(1);
@@ -2535,6 +2536,390 @@ body {
 
 .map-feed-container .map-container {
   flex: 1;
+}
+
+/* ============================================
+   MAP CONTAINER STYLES
+   ============================================ */
+
+.map-container {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  flex: 1;
+  background: var(--bg-secondary);
+  overflow: hidden;
+}
+
+.map-container.map-dark-mode {
+  background: #1d2c4d;
+}
+
+.map-container.map-light-mode {
+  background: #f0f0f0;
+}
+
+/* Map Loading State */
+.map-loading {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  background: var(--bg-secondary);
+  z-index: 100;
+}
+
+.map-loading-spinner {
+  width: 40px;
+  height: 40px;
+  border: 3px solid var(--border-subtle);
+  border-top-color: var(--accent-primary);
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+  margin-bottom: var(--space-md);
+}
+
+.map-loading p {
+  color: var(--text-secondary);
+  font-size: 0.875rem;
+  font-weight: 600;
+  letter-spacing: 0.05em;
+}
+
+/* Map Overlay */
+.map-overlay {
+  position: absolute;
+  top: 1rem;
+  left: 50%;
+  transform: translateX(-50%);
+  background: var(--bg-glass-heavy);
+  backdrop-filter: blur(12px);
+  padding: 0.5rem 1rem;
+  border-radius: var(--radius-full);
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  z-index: 50;
+  border: 1px solid var(--border-subtle);
+}
+
+/* Map Vignette Effect */
+.map-vignette {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  z-index: 5;
+  background: radial-gradient(ellipse at center, transparent 50%, rgba(2, 6, 23, 0.3) 100%);
+}
+
+/* Map Center Crosshair */
+.map-center-crosshair {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: 20px;
+  height: 20px;
+  pointer-events: none;
+  z-index: 10;
+}
+
+.map-center-crosshair::before,
+.map-center-crosshair::after {
+  content: '';
+  position: absolute;
+  background: var(--accent-primary);
+  opacity: 0.6;
+}
+
+.map-center-crosshair::before {
+  top: 50%;
+  left: 0;
+  right: 0;
+  height: 1px;
+  transform: translateY(-50%);
+}
+
+.map-center-crosshair::after {
+  left: 50%;
+  top: 0;
+  bottom: 0;
+  width: 1px;
+  transform: translateX(-50%);
+}
+
+/* Map Coordinates Display */
+.map-coords-display {
+  position: absolute;
+  bottom: 1.5rem;
+  left: 50%;
+  transform: translateX(-50%);
+  background: rgba(2, 6, 23, 0.85);
+  backdrop-filter: blur(12px);
+  padding: 0.5rem 1rem;
+  border-radius: var(--radius-full);
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 0.6875rem;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  z-index: 50;
+  border: 1px solid var(--border-subtle);
+}
+
+.coord-label {
+  color: var(--text-muted);
+  font-weight: 500;
+}
+
+.coord-val {
+  color: var(--accent-primary);
+  font-weight: 600;
+}
+
+.coord-divider {
+  color: var(--border-light);
+  margin: 0 0.25rem;
+}
+
+/* Dark Mode Toggle Button */
+.dark-mode-toggle {
+  position: absolute;
+  top: 1rem;
+  right: 1rem;
+  width: 40px;
+  height: 40px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(2, 6, 23, 0.85);
+  backdrop-filter: blur(12px);
+  border: 1px solid var(--border-subtle);
+  border-radius: 50%;
+  color: var(--text-secondary);
+  cursor: pointer;
+  transition: all 0.3s ease;
+  z-index: 50;
+}
+
+.dark-mode-toggle:hover {
+  background: var(--accent-primary);
+  color: white;
+  border-color: var(--accent-primary);
+  transform: scale(1.05);
+}
+
+/* Map Search Bar */
+.map-search-container {
+  position: absolute;
+  top: 100px;
+  left: 1.5rem;
+  z-index: 1000;
+  transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.map-search-btn {
+  width: 44px;
+  height: 44px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(2, 6, 23, 0.9);
+  backdrop-filter: blur(12px);
+  border: 1px solid var(--border-subtle);
+  border-radius: 50%;
+  color: var(--text-secondary);
+  cursor: pointer;
+  transition: all 0.3s ease;
+  box-shadow: var(--shadow-md);
+}
+
+.map-search-btn:hover {
+  background: var(--accent-primary);
+  color: white;
+  border-color: var(--accent-primary);
+  transform: scale(1.05);
+}
+
+.map-search-box {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  background: rgba(2, 6, 23, 0.95);
+  backdrop-filter: blur(20px);
+  border: 1px solid var(--border-light);
+  border-radius: var(--radius-full);
+  padding: 0.5rem 0.75rem 0.5rem 1rem;
+  min-width: 320px;
+  max-width: 450px;
+  box-shadow: var(--shadow-lg), 0 0 30px rgba(0, 0, 0, 0.3);
+  animation: search-expand 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+@keyframes search-expand {
+  from {
+    opacity: 0;
+    transform: scale(0.9);
+    min-width: 44px;
+  }
+
+  to {
+    opacity: 1;
+    transform: scale(1);
+    min-width: 320px;
+  }
+}
+
+.map-search-box .search-icon {
+  color: var(--accent-primary);
+  flex-shrink: 0;
+}
+
+.map-search-input {
+  flex: 1;
+  background: transparent;
+  border: none;
+  outline: none;
+  color: var(--text-primary);
+  font-size: 0.875rem;
+  font-family: 'Inter', sans-serif;
+  padding: 0.5rem 0;
+}
+
+.map-search-input::placeholder {
+  color: var(--text-muted);
+}
+
+.search-close-btn {
+  width: 32px;
+  height: 32px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(255, 255, 255, 0.05);
+  border: none;
+  border-radius: 50%;
+  color: var(--text-muted);
+  cursor: pointer;
+  transition: all 0.2s ease;
+  flex-shrink: 0;
+}
+
+.search-close-btn:hover {
+  background: rgba(239, 68, 68, 0.2);
+  color: var(--danger);
+}
+
+/* Google Places Autocomplete dropdown styling */
+.pac-container {
+  background: var(--bg-secondary) !important;
+  border: 1px solid var(--border-light) !important;
+  border-radius: var(--radius-lg) !important;
+  box-shadow: var(--shadow-lg) !important;
+  margin-top: 8px;
+  font-family: 'Inter', sans-serif !important;
+  padding: 0.5rem 0;
+}
+
+.pac-item {
+  padding: 0.75rem 1rem !important;
+  border: none !important;
+  cursor: pointer;
+  transition: background 0.15s ease;
+}
+
+.pac-item:hover {
+  background: var(--bg-tertiary) !important;
+}
+
+.pac-item-query {
+  color: var(--text-primary) !important;
+  font-size: 0.875rem !important;
+  font-weight: 500;
+}
+
+.pac-item span:not(.pac-item-query) {
+  color: var(--text-muted) !important;
+  font-size: 0.75rem !important;
+}
+
+.pac-icon {
+  display: none !important;
+}
+
+.pac-matched {
+  color: var(--accent-primary) !important;
+  font-weight: 600;
+}
+
+/* Leaflet Map Overrides */
+.leaflet-container {
+  font-family: 'Inter', sans-serif !important;
+  background: var(--bg-secondary) !important;
+}
+
+.leaflet-control-zoom {
+  border: none !important;
+  box-shadow: var(--shadow-md) !important;
+}
+
+.leaflet-control-zoom a {
+  background: var(--bg-glass-heavy) !important;
+  color: var(--text-primary) !important;
+  border: 1px solid var(--border-subtle) !important;
+  backdrop-filter: blur(12px);
+}
+
+.leaflet-control-zoom a:hover {
+  background: var(--accent-primary) !important;
+  color: white !important;
+}
+
+.leaflet-popup-content-wrapper {
+  background: var(--bg-secondary) !important;
+  border-radius: var(--radius-lg) !important;
+  box-shadow: var(--shadow-lg) !important;
+  padding: 0 !important;
+  overflow: hidden;
+}
+
+.leaflet-popup-tip {
+  background: var(--bg-secondary) !important;
+}
+
+.leaflet-popup-content {
+  margin: 0 !important;
+  min-width: 200px;
+}
+
+/* Google Maps specific overrides */
+.gm-style {
+  font-family: 'Inter', sans-serif !important;
+}
+
+.gm-style .gm-style-iw-c {
+  background: var(--bg-secondary) !important;
+  border-radius: var(--radius-lg) !important;
+  padding: 0 !important;
+  box-shadow: var(--shadow-lg) !important;
+}
+
+.gm-style .gm-style-iw-d {
+  overflow: visible !important;
+}
+
+.gm-style .gm-style-iw-tc::after {
+  background: var(--bg-secondary) !important;
+}
+
+.gm-style-iw-chr {
+  display: none !important;
+}
+
+.gm-ui-hover-effect {
+  display: none !important;
 }
 
 /* ============================================

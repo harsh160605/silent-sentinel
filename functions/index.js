@@ -15,7 +15,7 @@ const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
  * Parse natural language safety report using Google Gemini
  */
 export const parseReport = onRequest(
-  { 
+  {
     cors: true,
     region: 'us-central1'
   },
@@ -69,11 +69,11 @@ Respond in JSON format:
       res.json(parsed);
     } catch (error) {
       console.error('Error parsing report:', error);
-      
+
       // Fallback: basic keyword analysis
       const lowerText = text.toLowerCase();
       let riskLevel = 'low';
-      
+
       if (
         lowerText.includes('assault') ||
         lowerText.includes('weapon') ||
@@ -154,13 +154,13 @@ Respond in JSON format:
       res.json(moderation);
     } catch (error) {
       console.error('Error moderating content:', error);
-      
+
       // Fallback: basic checks
       const lowerText = text.toLowerCase();
-      
+
       // Check for PII patterns
       const hasPII = /\b\d{3}-\d{2}-\d{4}\b|\b\d{10}\b|\b[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Z|a-z]{2,}\b/.test(text);
-      
+
       if (hasPII) {
         res.json({
           approved: false,
@@ -253,7 +253,7 @@ export const detectPatterns = onSchedule(
       // Clear old patterns and write new ones
       const patternsCollection = db.collection('patterns');
       const oldPatternsSnapshot = await patternsCollection.get();
-      
+
       const batch = db.batch();
       oldPatternsSnapshot.forEach((doc) => {
         batch.delete(doc.ref);
@@ -352,14 +352,14 @@ export const generateAuthorityReport = onRequest(
 
       // Generate neutral summary using Gemini
       const model = genAI.getGenerativeModel({ model: 'gemini-pro' });
-      
+
       const summaryPrompt = `Generate a neutral, factual summary of these safety reports for local authorities.
 
 Reports: ${JSON.stringify(reports.map(r => ({
-  date: r.timestamp.toISOString().split('T')[0],
-  risk: r.riskLevel,
-  description: r.reason
-})))}
+        date: r.timestamp.toISOString().split('T')[0],
+        risk: r.riskLevel,
+        description: r.reason
+      })))}
 
 Create a professional summary that:
 1. States the number of reports and timeframe
@@ -421,7 +421,7 @@ export const getSmartSuggestions = onRequest(
       let keywordsQuery = db.collection('keywords')
         .orderBy('count', 'desc')
         .limit(20);
-      
+
       if (category) {
         keywordsQuery = db.collection('keywords')
           .where('category', '==', category)
@@ -440,7 +440,7 @@ export const getSmartSuggestions = onRequest(
         .orderBy('usageCount', 'desc')
         .limit(8)
         .get();
-      
+
       const templates = [];
       templatesSnapshot.forEach(doc => {
         templates.push({ id: doc.id, ...doc.data() });
@@ -451,7 +451,7 @@ export const getSmartSuggestions = onRequest(
       if (partialText.length >= 3) {
         try {
           const model = genAI.getGenerativeModel({ model: 'gemini-pro' });
-          
+
           const prompt = `You are helping users report safety concerns in their community. Based on the partial input, suggest 5 relevant completions or phrases.
 
 Partial input: "${partialText}"
@@ -465,7 +465,7 @@ Keep suggestions concise (under 50 characters each) and relevant to safety repor
 
           const result = await model.generateContent(prompt);
           const responseText = result.response.text();
-          
+
           const jsonMatch = responseText.match(/\[[\s\S]*\]/);
           if (jsonMatch) {
             aiSuggestions = JSON.parse(jsonMatch[0]);
@@ -489,7 +489,7 @@ Keep suggestions concise (under 50 characters each) and relevant to safety repor
       });
     } catch (error) {
       console.error('Error getting smart suggestions:', error);
-      
+
       // Return default templates even on error
       res.json({
         keywords: [],
@@ -531,7 +531,7 @@ export const updateKeywordStats = onRequest(
     try {
       // Use Gemini to extract keywords
       const model = genAI.getGenerativeModel({ model: 'gemini-pro' });
-      
+
       const prompt = `Extract 3-5 key phrases from this safety report that would be useful for autocomplete suggestions. Focus on action words, location descriptors, and safety concerns.
 
 Report: "${reportText}"
@@ -545,7 +545,7 @@ Keep each phrase between 2-4 words, lowercase, focused on reusable patterns.`;
       try {
         const result = await model.generateContent(prompt);
         const responseText = result.response.text();
-        
+
         const jsonMatch = responseText.match(/\[[\s\S]*\]/);
         if (jsonMatch) {
           keywords = JSON.parse(jsonMatch[0]);
@@ -567,12 +567,12 @@ Keep each phrase between 2-4 words, lowercase, focused on reusable patterns.`;
 
       for (const keyword of keywords) {
         if (!keyword || keyword.length < 2) continue;
-        
+
         const keywordLower = keyword.toLowerCase().trim();
         const keywordRef = db.collection('keywords').doc(keywordLower.replace(/\s+/g, '-'));
-        
+
         const keywordDoc = await keywordRef.get();
-        
+
         if (keywordDoc.exists) {
           batch.update(keywordRef, {
             count: FieldValue.increment(1),
@@ -591,10 +591,10 @@ Keep each phrase between 2-4 words, lowercase, focused on reusable patterns.`;
       }
 
       await batch.commit();
-      
-      res.json({ 
-        success: true, 
-        extractedKeywords: keywords 
+
+      res.json({
+        success: true,
+        extractedKeywords: keywords
       });
     } catch (error) {
       console.error('Error updating keyword stats:', error);
@@ -638,9 +638,9 @@ export const analyzeReportPatterns = onSchedule(
 
       // Use Gemini to find common patterns
       const model = genAI.getGenerativeModel({ model: 'gemini-pro' });
-      
+
       const sampleReports = reports.slice(0, 50).join('\n---\n');
-      
+
       const prompt = `Analyze these community safety reports and identify common patterns, phrases, and templates that could help users write reports faster.
 
 Reports:
@@ -659,7 +659,7 @@ Identify 5-8 templates and 10-15 frequent phrases.`;
 
       const result = await model.generateContent(prompt);
       const responseText = result.response.text();
-      
+
       const jsonMatch = responseText.match(/\{[\s\S]*\}/);
       if (!jsonMatch) {
         console.error('Failed to parse AI pattern analysis');
@@ -671,17 +671,17 @@ Identify 5-8 templates and 10-15 frequent phrases.`;
       // Update report templates
       if (analysis.commonTemplates && analysis.commonTemplates.length > 0) {
         const batch = db.batch();
-        
+
         for (const template of analysis.commonTemplates) {
           const templateId = template.template
             .substring(0, 30)
             .toLowerCase()
             .replace(/[^\w\s]/g, '')
             .replace(/\s+/g, '-');
-          
+
           const templateRef = db.collection('reportTemplates').doc(templateId);
           const existingDoc = await templateRef.get();
-          
+
           if (existingDoc.exists) {
             batch.update(templateRef, {
               usageCount: FieldValue.increment(1),
@@ -698,18 +698,18 @@ Identify 5-8 templates and 10-15 frequent phrases.`;
             });
           }
         }
-        
+
         await batch.commit();
       }
 
       // Update frequent phrases as keywords
       if (analysis.frequentPhrases && analysis.frequentPhrases.length > 0) {
         const batch = db.batch();
-        
+
         for (const phrase of analysis.frequentPhrases) {
           const phraseId = phrase.toLowerCase().replace(/\s+/g, '-');
           const phraseRef = db.collection('keywords').doc(phraseId);
-          
+
           batch.set(phraseRef, {
             keyword: phrase.toLowerCase(),
             count: 10, // Boost discovered patterns
@@ -718,7 +718,7 @@ Identify 5-8 templates and 10-15 frequent phrases.`;
             source: 'ai-analysis'
           }, { merge: true });
         }
-        
+
         await batch.commit();
       }
 
