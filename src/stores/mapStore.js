@@ -12,12 +12,13 @@ export const useMapStore = create((set) => ({
   },
   reports: [],
   patterns: [],
+  selectedReport: null, // Track selected report for highlighting
 
   setMap: (map) => set({ map }),
   setCenter: (center) => set({ center }),
   setZoom: (zoom) => set({ zoom }),
   setUserLocation: (location) => set({ userLocation: location }),
-  
+
   toggleLayer: (layer) =>
     set((state) => ({
       selectedLayers: {
@@ -28,5 +29,13 @@ export const useMapStore = create((set) => ({
 
   setReports: (reports) => set({ reports }),
   setPatterns: (patterns) => set({ patterns }),
+  setSelectedReport: (report) => set({ selectedReport: report }),
+
+  // Navigate to a report and select it
+  navigateToReport: (report) => set({
+    center: { lat: report.location.lat, lng: report.location.lng },
+    zoom: 17,
+    selectedReport: report,
+  }),
 }));
 

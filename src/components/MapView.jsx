@@ -165,12 +165,14 @@ const MapView = () => {
     setReports,
     patterns,
     setPatterns,
+    selectedReport: storeSelectedReport,
+    setSelectedReport: setStoreSelectedReport,
   } = useMapStore();
 
   const [loading, setLoading] = useState(false);
   const [initialCenter, setInitialCenter] = useState(null);
   const [darkMode, setDarkMode] = useState(true);
-  const [selectedReport, setSelectedReport] = useState(null);
+  const [localSelectedReport, setLocalSelectedReport] = useState(null);
   const [mapInstance, setMapInstance] = useState(null);
   const [mouseCoords, setMouseCoords] = useState({ lat: 0, lng: 0 });
   const [searchOpen, setSearchOpen] = useState(false);
@@ -178,6 +180,15 @@ const MapView = () => {
   const [autocomplete, setAutocomplete] = useState(null);
   const isInitialized = useRef(false);
   const searchInputRef = useRef(null);
+
+  // Combine store selected report with local selection
+  const selectedReport = storeSelectedReport || localSelectedReport;
+  const setSelectedReport = (report) => {
+    setLocalSelectedReport(report);
+    if (!report) {
+      setStoreSelectedReport(null);
+    }
+  };
 
   const GOOGLE_MAPS_API_KEY = import.meta.env.VITE_GOOGLE_MAPS_API_KEY;
 
@@ -211,6 +222,19 @@ const MapView = () => {
       searchInputRef.current.focus();
     }
   }, [searchOpen]);
+
+  // Pan map when a report is selected from the activity feed
+  useEffect(() => {
+    if (storeSelectedReport && mapInstance) {
+      const newCenter = {
+        lat: storeSelectedReport.location.lat,
+        lng: storeSelectedReport.location.lng,
+      };
+      mapInstance.panTo(newCenter);
+      mapInstance.setZoom(17);
+      setLocalSelectedReport(storeSelectedReport);
+    }
+  }, [storeSelectedReport, mapInstance]);
 
   // Load reports for current map area
   useEffect(() => {
@@ -494,7 +518,9 @@ const MapView = () => {
                   strokeColor: RISK_COLORS[report.riskLevel],
                   strokeOpacity: 0.4,
                   strokeWeight: 2,
+                  clickable: true,
                 }}
+                onClick={() => setSelectedReport(report)}
               />
             ))}
 
@@ -534,36 +560,91 @@ const MapView = () => {
             position={{ lat: selectedReport.location.lat, lng: selectedReport.location.lng }}
             onCloseClick={() => setSelectedReport(null)}
           >
-            <div className="popup-card" style={{ padding: '12px', minWidth: '200px' }}>
+            <div className="popup-card" style={{ padding: '0', minWidth: '280px', maxWidth: '320px' }}>
+              {/* Risk Badge Header */}
               <div
-                className={`popup-risk-badge ${selectedReport.riskLevel}`}
                 style={{
-                  padding: '4px 8px',
-                  borderRadius: '4px',
-                  fontSize: '0.75rem',
-                  fontWeight: 'bold',
-                  marginBottom: '8px',
-                  display: 'inline-block',
+                  padding: '10px 14px',
                   backgroundColor: RISK_COLORS[selectedReport.riskLevel],
                   color: 'white',
+                  fontWeight: 'bold',
+                  fontSize: '0.75rem',
+                  letterSpacing: '0.05em',
+                  textTransform: 'uppercase',
                 }}
               >
-                {selectedReport.riskLevel.toUpperCase()} RISK
+                {selectedReport.riskLevel} RISK • {selectedReport.reportType === 'perception' ? 'Safety Concern' : 'Incident'}
               </div>
-              <div className="popup-content-main">
-                <h4 style={{ margin: '0 0 8px 0', fontSize: '1rem', fontWeight: '600' }}>
-                  {selectedReport.category || 'Incident Report'}
-                </h4>
-                <p style={{ margin: '0 0 8px 0', fontSize: '0.875rem', color: '#666' }}>
-                  {selectedReport.description}
+
+              {/* Content */}
+              <div style={{ padding: '14px' }}>
+                {/* Category */}
+                {selectedReport.category && (
+                  <h4 style={{
+                    margin: '0 0 10px 0',
+                    fontSize: '1rem',
+                    fontWeight: '700',
+                    color: '#1a1a2e',
+                  }}>
+                    {selectedReport.category}
+                  </h4>
+                )}
+
+                {/* Description/Reason */}
+                <p style={{
+                  margin: '0 0 12px 0',
+                  fontSize: '0.875rem',
+                  color: '#444',
+                  lineHeight: '1.5',
+                  maxHeight: '80px',
+                  overflow: 'hidden',
+                  textOverflow: 'ellipsis',
+                  display: '-webkit-box',
+                  WebkitLineClamp: 4,
+                  WebkitBoxOrient: 'vertical',
+                }}>
+                  {selectedReport.reason || selectedReport.originalText || selectedReport.description || 'No description available'}
                 </p>
-                <div className="popup-footer" style={{ fontSize: '0.75rem', color: '#888' }}>
-                  <span className="popup-time">
-                    {new Date(selectedReport.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+
+                {/* Location Coordinates */}
+                <div style={{
+                  fontSize: '0.7rem',
+                  color: '#888',
+                  marginBottom: '10px',
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '4px',
+                }}>
+                  <span>📍</span>
+                  <span>{selectedReport.location?.lat?.toFixed(5)}, {selectedReport.location?.lng?.toFixed(5)}</span>
+                </div>
+
+                {/* Footer - Time & Confirmations */}
+                <div style={{
+                  display: 'flex',
+                  justifyContent: 'space-between',
+                  alignItems: 'center',
+                  paddingTop: '10px',
+                  borderTop: '1px solid #eee',
+                  fontSize: '0.75rem',
+                  color: '#666',
+                }}>
+                  <span style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
+                    🕐 {selectedReport.timestamp ? new Date(selectedReport.timestamp).toLocaleString([], {
+                      month: 'short',
+                      day: 'numeric',
+                      hour: '2-digit',
+                      minute: '2-digit'
+                    }) : 'Unknown time'}
                   </span>
-                  {selectedReport.confirmCount > 0 && (
-                    <span className="popup-confirmed" style={{ marginLeft: '8px' }}>
-                      • {selectedReport.confirmCount} Confirmed
+                  {(selectedReport.confirmCount > 0 || selectedReport.disputeCount > 0) && (
+                    <span style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                      {selectedReport.confirmCount > 0 && (
+                        <span style={{ color: '#10b981' }}>👍 {selectedReport.confirmCount}</span>
+                      )}
+                      {selectedReport.disputeCount > 0 && (
+                        <span style={{ color: '#ef4444' }}>👎 {selectedReport.disputeCount}</span>
+                      )}
                     </span>
                   )}
                 </div>

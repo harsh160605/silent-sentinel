@@ -1,22 +1,29 @@
-import React, { useState, useEffect, useCallback } from 'react';
-import { X, MapPin, AlertCircle, CheckCircle, Loader, Sparkles, Navigation, Mic } from 'lucide-react';
+import React, { useState, useEffect, useCallback, useRef } from 'react';
+import { X, MapPin, AlertCircle, CheckCircle, Loader, Sparkles, Navigation, Mic, Crosshair } from 'lucide-react';
 import { useMapStore } from '../stores/mapStore';
 import { requestUserLocation } from '../services/geolocation';
 import { parseNaturalLanguageReport, moderateContent } from '../services/aiService';
 import { submitReport } from '../services/reportService';
 import { getSmartSuggestions, updateKeywordStats, debouncedGetSuggestions } from '../services/keywordService';
 import VoiceInput from './VoiceInput';
+import { GoogleMap, Marker } from '@react-google-maps/api';
 
 const ReportModal = ({ onClose }) => {
   const { userLocation, center } = useMapStore();
   const [step, setStep] = useState(1); // 1: Input, 2: Review, 3: Success
   const [reportText, setReportText] = useState('');
   const [reportType, setReportType] = useState('perception');
-  const [useLocation, setUseLocation] = useState(false);
+  const [locationMode, setLocationMode] = useState(null); // 'live' | 'manual' | null
   const [location, setLocation] = useState(null);
   const [parsedData, setParsedData] = useState(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
+  const [showMapPicker, setShowMapPicker] = useState(false);
+  const [pinLocation, setPinLocation] = useState(null);
+  const mapRef = useRef(null);
+
+  // Check if Google Maps is loaded (loaded by MapView)
+  const isGoogleMapsLoaded = typeof window !== 'undefined' && window.google && window.google.maps;
 
   // Smart suggestions state
   const [smartSuggestions, setSmartSuggestions] = useState({
@@ -85,21 +92,55 @@ const ReportModal = ({ onClose }) => {
     setShowSuggestions(false);
   };
 
+  // Handle live location request
   const handleLocationRequest = async () => {
     try {
       setLoading(true);
       const loc = await requestUserLocation();
       setLocation(loc);
-      setUseLocation(true);
+      setLocationMode('live');
       setError(null);
     } catch (err) {
-      setError('Unable to access location. You can still submit without location.');
-      // Use map center as fallback
-      setLocation(center);
-      setUseLocation(true);
+      setError('Unable to access location. Try pinpointing manually.');
     } finally {
       setLoading(false);
     }
+  };
+
+  // Open map picker for manual location
+  const handleOpenMapPicker = () => {
+    setShowMapPicker(true);
+    // Initialize pin to current center or user location
+    setPinLocation(userLocation || center || { lat: 20.5937, lng: 78.9629 });
+  };
+
+  // Handle map click to place pin
+  const handleMapClick = (e) => {
+    setPinLocation({
+      lat: e.latLng.lat(),
+      lng: e.latLng.lng(),
+    });
+  };
+
+  // Confirm manually pinned location
+  const handleConfirmPin = () => {
+    if (pinLocation) {
+      setLocation(pinLocation);
+      setLocationMode('manual');
+      setShowMapPicker(false);
+    }
+  };
+
+  // Cancel map picker
+  const handleCancelMapPicker = () => {
+    setShowMapPicker(false);
+    setPinLocation(null);
+  };
+
+  // Reset location
+  const handleResetLocation = () => {
+    setLocation(null);
+    setLocationMode(null);
   };
 
   const handleSubmit = async (e) => {
@@ -295,27 +336,56 @@ const ReportModal = ({ onClose }) => {
                 )}
               </div>
 
-              {/* Location Consent with Coordinates Display */}
+              {/* Location Selection - Live or Manual */}
               <div className="form-group">
                 <label>
                   <MapPin size={16} />
-                  Location
+                  Incident Location
                 </label>
-                {!useLocation ? (
-                  <button
-                    type="button"
-                    className="btn-secondary location-btn"
-                    onClick={handleLocationRequest}
-                    disabled={loading}
-                  >
-                    <Navigation size={16} />
-                    Use My Current Location
-                  </button>
+
+                {!locationMode ? (
+                  <div className="location-options">
+                    <button
+                      type="button"
+                      className="location-option-btn"
+                      onClick={handleLocationRequest}
+                      disabled={loading}
+                    >
+                      <Navigation size={20} />
+                      <div className="option-text">
+                        <span>Use Current Location</span>
+                        <small>Auto-detect via GPS</small>
+                      </div>
+                    </button>
+
+                    <button
+                      type="button"
+                      className="location-option-btn"
+                      onClick={handleOpenMapPicker}
+                      disabled={loading}
+                    >
+                      <Crosshair size={20} />
+                      <div className="option-text">
+                        <span>Pin on Map</span>
+                        <small>Select location manually</small>
+                      </div>
+                    </button>
+                  </div>
                 ) : (
                   <div className="location-status-card">
                     <div className="location-status-header">
                       <CheckCircle size={16} className="text-success" />
-                      <span>Location captured</span>
+                      <span>
+                        {locationMode === 'live' ? 'GPS Location captured' : 'Location pinned manually'}
+                      </span>
+                      <button
+                        type="button"
+                        className="btn-reset-location"
+                        onClick={handleResetLocation}
+                        title="Change location"
+                      >
+                        Change
+                      </button>
                     </div>
                     {location && (
                       <div className="location-coordinates">
@@ -327,7 +397,7 @@ const ReportModal = ({ onClose }) => {
                           <span className="coordinate-label">Lng:</span>
                           <span className="coordinate-value">{formatCoordinate(location.lng)}</span>
                         </div>
-                        {location.accuracy && (
+                        {location.accuracy && locationMode === 'live' && (
                           <div className="coordinate-row accuracy">
                             <span className="coordinate-label">Accuracy:</span>
                             <span className="coordinate-value">±{Math.round(location.accuracy)}m</span>
@@ -338,9 +408,82 @@ const ReportModal = ({ onClose }) => {
                   </div>
                 )}
                 <small>
-                  Your exact location is only used for this report and never stored with your identity.
+                  Your location is only used for this report and never stored with your identity.
                 </small>
               </div>
+
+              {/* Map Picker Modal */}
+              {showMapPicker && isGoogleMapsLoaded && (
+                <div className="map-picker-overlay" onClick={handleCancelMapPicker}>
+                  <div className="map-picker-modal" onClick={(e) => e.stopPropagation()}>
+                    <div className="map-picker-header">
+                      <h3>
+                        <Crosshair size={18} />
+                        Pin Incident Location
+                      </h3>
+                      <p>Click or tap on the map to place a pin at the incident location</p>
+                    </div>
+
+                    <div className="map-picker-container">
+                      <GoogleMap
+                        mapContainerStyle={{ width: '100%', height: '100%' }}
+                        center={pinLocation || center || { lat: 20.5937, lng: 78.9629 }}
+                        zoom={15}
+                        onClick={handleMapClick}
+                        onLoad={(map) => { mapRef.current = map; }}
+                        options={{
+                          disableDefaultUI: true,
+                          zoomControl: true,
+                          clickableIcons: false,
+                        }}
+                      >
+                        {pinLocation && (
+                          <Marker
+                            position={pinLocation}
+                            draggable={true}
+                            onDragEnd={(e) => {
+                              setPinLocation({
+                                lat: e.latLng.lat(),
+                                lng: e.latLng.lng(),
+                              });
+                            }}
+                          />
+                        )}
+                      </GoogleMap>
+
+                      {/* Crosshair overlay for precision */}
+                      <div className="map-picker-crosshair">
+                        <Crosshair size={24} />
+                      </div>
+                    </div>
+
+                    {pinLocation && (
+                      <div className="map-picker-coords">
+                        📍 {pinLocation.lat.toFixed(5)}, {pinLocation.lng.toFixed(5)}
+                      </div>
+                    )}
+
+                    <div className="map-picker-actions">
+                      <button
+                        type="button"
+                        className="btn-secondary"
+                        onClick={handleCancelMapPicker}
+                      >
+                        Cancel
+                      </button>
+                      <button
+                        type="button"
+                        className="btn-primary"
+                        onClick={handleConfirmPin}
+                        disabled={!pinLocation}
+                      >
+                        <CheckCircle size={16} />
+                        Confirm Location
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              )}
 
               {error && (
                 <div className="alert alert-error">
@@ -387,13 +530,15 @@ const ReportModal = ({ onClose }) => {
                 <strong>Location:</strong>
                 {location ? (
                   <div className="review-location">
-                    <span>Your current location</span>
+                    <span>
+                      {locationMode === 'live' ? '📍 GPS Location' : '📌 Manually Pinned'}
+                    </span>
                     <small className="location-coords-inline">
                       ({formatCoordinate(location.lat)}, {formatCoordinate(location.lng)})
                     </small>
                   </div>
                 ) : (
-                  <span>Map center location</span>
+                  <span>📍 Map center location</span>
                 )}
               </div>
             </div>

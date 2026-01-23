@@ -10,11 +10,14 @@ import {
     Send,
     AlertTriangle,
     Shield,
-    Loader
+    Loader,
+    Navigation,
+    ExternalLink
 } from 'lucide-react';
 import { formatDistanceToNow } from 'date-fns';
 import { voteOnReport, getUserVote, getReportComments } from '../services/voteService';
 import { useAuthStore } from '../stores/authStore';
+import { useMapStore } from '../stores/mapStore';
 
 const RISK_COLORS = {
     low: '#10b981',
@@ -30,6 +33,7 @@ const RISK_ICONS = {
 
 const ReportCard = ({ report, onLocationClick }) => {
     const { user } = useAuthStore();
+    const { navigateToReport, selectedReport } = useMapStore();
     const sessionId = user?.uid || 'anonymous';
     const [userVote, setUserVote] = useState(null);
     const [voteLoading, setVoteLoading] = useState(false);
@@ -38,6 +42,8 @@ const ReportCard = ({ report, onLocationClick }) => {
     const [newComment, setNewComment] = useState('');
     const [confirmCount, setConfirmCount] = useState(report.confirmCount || 0);
     const [disputeCount, setDisputeCount] = useState(report.disputeCount || 0);
+
+    const isSelected = selectedReport?.id === report.id;
 
     // Load user's existing vote
     useEffect(() => {
@@ -118,14 +124,20 @@ const ReportCard = ({ report, onLocationClick }) => {
         }
     };
 
+    // Navigate to report location on map
+    const handleViewOnMap = (e) => {
+        e.stopPropagation();
+        navigateToReport(report);
+    };
+
     const RiskIcon = RISK_ICONS[report.riskLevel] || Shield;
     const timeAgo = report.timestamp ? formatDistanceToNow(new Date(report.timestamp), { addSuffix: true }) : '';
     const commentCount = comments.length;
 
     return (
-        <div className="report-card">
-            {/* Header */}
-            <div className="report-card-header">
+        <div className={`report-card ${isSelected ? 'selected' : ''}`}>
+            {/* Header - Clickable to view on map */}
+            <div className="report-card-header" onClick={handleViewOnMap} style={{ cursor: 'pointer' }}>
                 <div
                     className="report-risk-indicator"
                     style={{ backgroundColor: RISK_COLORS[report.riskLevel] }}
@@ -140,14 +152,21 @@ const ReportCard = ({ report, onLocationClick }) => {
                         {report.riskLevel?.toUpperCase()}
                     </span>
                 </div>
+                <button
+                    className="view-on-map-btn"
+                    onClick={handleViewOnMap}
+                    title="View on Map"
+                >
+                    <Navigation size={14} />
+                </button>
             </div>
 
             {/* Content */}
-            <div className="report-card-content">
+            <div className="report-card-content" onClick={handleViewOnMap} style={{ cursor: 'pointer' }}>
                 <p className="report-reason">{report.reason || report.originalText}</p>
 
                 <div className="report-info">
-                    <span className="report-location" onClick={() => onLocationClick?.(report.location)}>
+                    <span className="report-location" onClick={(e) => { e.stopPropagation(); onLocationClick?.(report.location); }}>
                         <MapPin size={12} />
                         {report.location?.lat?.toFixed(4)}, {report.location?.lng?.toFixed(4)}
                     </span>
